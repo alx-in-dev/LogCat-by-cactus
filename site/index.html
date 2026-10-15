@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="ru" data-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LogCat by cactus — Logcat для Android отдельным приложением</title>
+<meta name="description" content="Logcat для Android отдельным окном для macOS и Windows и плагин для Android Studio. Язык фильтра, краши и ANR, закладки, баг-репорт, Wi-Fi ADB. Открытый код, Apache 2.0.">
+<meta property="og:title" content="LogCat by cactus">
+<meta property="og:description" content="Найти нужную строку в Logcat одним запросом. Приложение для macOS и Windows и плагин для Android Studio.">
+<meta property="og:image" content="https://alx-in-dev.github.io/LogCat-by-cactus/screenshot.png">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='12' y='7' width='8' height='22' rx='4' fill='%237fb77e'/%3E%3Crect x='5' y='13' width='6' height='4' rx='2' fill='%237fb77e'/%3E%3Crect x='5' y='13' width='4' height='9' rx='2' fill='%237fb77e'/%3E%3Crect x='21' y='10' width='6' height='4' rx='2' fill='%237fb77e'/%3E%3Crect x='23' y='10' width='4' height='9' rx='2' fill='%237fb77e'/%3E%3Ccircle cx='16' cy='6' r='3' fill='%23c4f27e'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1512; --panel:#151f1a; --panel-2:#1b2822; --line:#27372f;
+  --text:#e9efe4; --muted:#94a89b; --accent:#78d98b; --accent-ink:#0e1512;
+  --green:#7fb77e;
+  --lv-V:#8d9a92; --lv-D:#5f9bc4; --lv-I:#7fb77e; --lv-W:#d8c84c; --lv-E:#e4665f;
+  --shadow:0 30px 80px -30px rgba(0,0,0,.7);
+  --sans:"Familjen Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#edf1e6; --panel:#f8faf4; --panel-2:#e3e9dc; --line:#c8d3c0;
+    --text:#13201a; --muted:#4f6256; --accent:#2b7a3a; --accent-ink:#ffffff;
+    --green:#3f7a3e;
+    --lv-V:#66736b; --lv-D:#2d6c96; --lv-I:#3f7a3e; --lv-W:#8a7a00; --lv-E:#b8332d;
+    --shadow:0 30px 70px -35px rgba(19,32,26,.45);
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:18px;line-height:1.55;-webkit-font-smoothing:antialiased}
+html[data-lang="ru"] [lang="en"], html[data-lang="en"] [lang="ru"]{display:none}
+a{color:inherit}
+code,.mono{font-family:var(--mono);font-size:.86em}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.wrap{width:min(1160px,100% - 32px);margin-inline:auto}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;text-decoration:none;letter-spacing:-.01em}
+.brand svg{width:26px;height:26px}
+.brand span b{color:var(--muted);font-weight:500}
+.nav{display:flex;align-items:center;gap:22px;font-size:16px}
+.nav a{text-decoration:none;color:var(--muted)}
+.nav a:hover{color:var(--text)}
+.lang{font-family:var(--mono);font-size:13px;border:1px solid var(--line);background:transparent;color:var(--muted);padding:5px 9px;border-radius:6px;cursor:pointer}
+.lang:hover{color:var(--text);border-color:var(--muted)}
+@media (max-width:640px){.nav a.hide-s{display:none}}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:center;padding:36px 0 72px}
+@media (max-width:960px){.hero{grid-template-columns:minmax(0,1fr);gap:36px;padding-bottom:48px}}
+.hero>*{min-width:0}
+h1{font-size:clamp(36px,5.2vw,62px);line-height:1.04;letter-spacing:-.03em;font-weight:700;margin:0 0 22px}
+h1 em{font-style:normal;color:var(--accent)}
+.lead{color:var(--muted);font-size:20px;margin:0 0 30px;max-width:34em}
+.cta{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 20px;border-radius:10px;font-weight:600;font-size:17px;text-decoration:none;border:1px solid var(--line);color:var(--text);background:transparent;transition:background .15s,border-color .15s,transform .15s}
+.btn:hover{border-color:var(--muted);background:var(--panel)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08);background:var(--accent)}
+.btn[aria-disabled="true"]{opacity:.55;pointer-events:none}
+.facts{display:flex;flex-wrap:wrap;gap:8px 18px;margin:26px 0 0;padding:0;list-style:none;color:var(--muted);font-size:15px}
+.facts li::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:8px;vertical-align:middle}
+
+/* demo window */
+.win{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.win-bar{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+.win-bar i{width:11px;height:11px;border-radius:50%;background:var(--line)}
+.win-bar span{margin-left:8px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.query{display:flex;align-items:center;gap:10px;margin:14px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg)}
+.query:focus-within{border-color:var(--accent)}
+.query[data-bad="true"]{border-color:var(--lv-E)}
+.query svg{flex:none;width:16px;height:16px;color:var(--muted)}
+.query input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--text);font-family:var(--mono);font-size:15px;padding:12px 0}
+.query .scope{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46%}
+@media (max-width:560px){.query .scope{display:none}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 12px}
+.chip{font-family:var(--mono);font-size:12.5px;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:5px 11px;cursor:pointer}
+.chip:hover,.chip[aria-pressed="true"]{color:var(--text);border-color:var(--accent)}
+.log{margin:0;padding:6px 0 8px;list-style:none;height:372px;overflow:auto;font-family:var(--mono);font-size:12.5px;line-height:1.35;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:22px 92px 112px minmax(0,1fr);gap:10px;align-items:baseline;padding:3px 14px;animation:in .22s ease-out both}
+@keyframes in{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.lv{display:inline-block;width:18px;text-align:center;border-radius:3px;font-weight:700;font-size:11px;color:#0e1512}
+.lv-V{background:var(--lv-V)}.lv-D{background:var(--lv-D)}.lv-I{background:var(--lv-I)}.lv-W{background:var(--lv-W)}.lv-E{background:var(--lv-E)}
+.row .t{color:var(--muted)}
+.row .g{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .m{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row.lvl-E .m{color:var(--lv-E)}.row.lvl-W .m{color:var(--lv-W)}
+.empty{padding:28px 14px;color:var(--muted);font-family:var(--mono);font-size:13px}
+.win-foot{display:flex;justify-content:space-between;gap:12px;padding:9px 14px;border-top:1px solid var(--line);background:var(--panel-2);font-family:var(--mono);font-size:12px;color:var(--muted)}
+@media (max-width:560px){.row{grid-template-columns:22px 1fr}.row .t,.row .g{display:none}.row .m{white-space:normal}}
+.demo-note{margin:14px 4px 0;color:var(--muted);font-size:14px}
+
+/* sections */
+section{padding:64px 0}
+.eyebrow{font-family:var(--mono);font-size:13px;color:var(--accent);margin:0 0 12px;letter-spacing:.02em}
+h2{font-size:clamp(28px,3.4vw,42px);line-height:1.1;letter-spacing:-.025em;margin:0 0 16px;font-weight:700}
+.sub{color:var(--muted);max-width:40em;margin:0 0 36px}
+.shot{margin:0}
+.shot img{display:block;width:100%;height:auto;border-radius:14px;border:1px solid var(--line);box-shadow:var(--shadow)}
+.shot figcaption{margin-top:14px;color:var(--muted);font-size:15px}
+
+.ref{width:100%;border-collapse:collapse;font-size:17px}
+.ref th,.ref td{text-align:left;vertical-align:top;padding:14px 0;border-top:1px solid var(--line)}
+.ref tr:last-child th,.ref tr:last-child td{border-bottom:1px solid var(--line)}
+.ref th{width:34%;padding-right:20px;font-weight:500}
+.ref th code{color:var(--accent);font-size:.92em;white-space:nowrap}
+.ref td{color:var(--muted)}
+.ref td code{color:var(--text)}
+@media (max-width:700px){.ref th,.ref td{display:block;width:auto;padding:0}.ref tr{display:block;padding:14px 0;border-top:1px solid var(--line)}.ref th,.ref td{border:0!important}.ref th{padding-bottom:4px}}
+
+.ledger{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:56px;margin:0}
+@media (max-width:800px){.ledger{grid-template-columns:1fr}}
+.ledger div{padding:18px 0;border-top:1px solid var(--line)}
+.ledger dt{font-weight:600;margin-bottom:4px}
+.ledger dd{margin:0;color:var(--muted);font-size:16.5px}
+
+.dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+@media (max-width:900px){.dl{grid-template-columns:1fr}}
+.card{display:flex;flex-direction:column;gap:12px;padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.card h3{margin:0;font-size:22px;letter-spacing:-.015em}
+.card p{margin:0;color:var(--muted);font-size:16px}
+.card .mono{color:var(--text);font-size:13px}
+.card .spacer{flex:1}
+.card .btn{justify-content:center}
+.ver{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.note{margin-top:22px;color:var(--muted);font-size:15px;max-width:52em}
+
+footer{border-top:1px solid var(--line);padding:40px 0 56px;color:var(--muted);font-size:15px}
+footer .cols{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:40px}
+@media (max-width:800px){footer .cols{grid-template-columns:1fr}}
+footer h4{margin:0 0 8px;color:var(--text);font-size:16px}
+footer p{margin:0 0 10px}
+footer ul{margin:0;padding:0;list-style:none}
+footer li{margin:4px 0}
+footer a{color:var(--text)}
+.legal{margin-top:28px;font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#top" aria-label="LogCat by cactus">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="12" y="7" width="8" height="22" rx="4" fill="#7fb77e"/><rect x="5" y="13" width="6" height="4" rx="2" fill="#7fb77e"/><rect x="5" y="13" width="4" height="9" rx="2" fill="#7fb77e"/><rect x="21" y="10" width="6" height="4" rx="2" fill="#7fb77e"/><rect x="23" y="10" width="4" height="9" rx="2" fill="#7fb77e"/><circle cx="16" cy="6" r="3" fill="#c4f27e"/></svg>
+      <span>LogCat <b>by cactus</b></span>
+    </a>
+    <nav class="nav" aria-label="Разделы">
+      <a class="hide-s" href="#filter"><span lang="ru">Фильтр</span><span lang="en">Filter</span></a>
+      <a class="hide-s" href="#features"><span lang="ru">Возможности</span><span lang="en">Features</span></a>
+      <a href="#download"><span lang="ru">Скачать</span><span lang="en">Download</span></a>
+      <a class="hide-s" href="https://github.com/alx-in-dev/LogCat-by-cactus">GitHub</a>
+      <button class="lang" id="lang" type="button" aria-label="Language">EN</button>
+    </nav>
+  </header>
+
+  <main id="top">
+    <div class="hero">
+      <div>
+        <h1>
+          <span lang="ru">Найти нужную строку в Logcat — <em>одним запросом</em></span>
+          <span lang="en">Find the right Logcat line with <em>one query</em></span>
+        </h1>
+        <p class="lead">
+          <span lang="ru">Отдельное приложение для macOS и Windows и плагин для Android Studio. Один язык фильтра в обоих: вы пишете условие, а не листаете тысячи строк.</span>
+          <span lang="en">A standalone app for macOS and Windows plus an Android Studio plugin. One filter language in both: you write a condition instead of scrolling through thousands of lines.</span>
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="#download"><span lang="ru">Скачать</span><span lang="en">Download</span></a>
+          <a class="btn" href="https://github.com/alx-in-dev/LogCat-by-cactus"><span lang="ru">Исходники на GitHub</span><span lang="en">Source on GitHub</span></a>
+        </div>
+        <ul class="facts">
+          <li><span lang="ru">Открытый код, Apache 2.0</span><span lang="en">Open source, Apache 2.0</span></li>
+          <li><span lang="ru">adb уже внутри</span><span lang="en">adb is bundled</span></li>
+          <li><span lang="ru">Данные не уходят в сеть</span><span lang="en">No data leaves your machine</span></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="win" role="group" aria-label="Demo">
+          <div class="win-bar"><i></i><i></i><i></i><span>LogCat by cactus — demo</span></div>
+          <label class="query" id="qbox">
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1 2h14l-5.4 6.2V14l-3.2-1.8V8.2z"/></svg>
+            <input id="q" type="text" value="package:mine level:warn" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Filter">
+            <span class="scope" id="scope"></span>
+          </label>
+          <div class="chips" id="chips"></div>
+          <ol class="log" id="log" aria-live="polite"></ol>
+          <div class="win-foot"><span id="count"></span><span>com.example.shop · Pixel 8</span></div>
+        </div>
+        <p class="demo-note">
+          <span lang="ru">Это живой фильтр на выдуманных логах — он работает прямо в браузере и понимает основные ключи приложения.</span>
+          <span lang="en">This is a live filter over made-up logs. It runs in your browser and understands the app's main keys.</span>
+        </p>
+      </div>
+    </div>
+
+    <section id="look" style="padding-top:8px">
+      <figure class="shot">
+        <img src="screenshot.png" width="1600" height="1003" alt="Окно LogCat by cactus: вкладка Logcat, выбранный телефон, фильтр package:mine, список строк с цветными значками уровней и боковая панель инструментов">
+        <figcaption>
+          <span lang="ru">Привычный вид Logcat из Android Studio, но отдельным окном: устройство, фильтр, значки уровней и боковая панель с очисткой, паузой, закладками и баг-репортом.</span>
+          <span lang="en">The familiar Android Studio Logcat look in its own window: device picker, filter, level badges and a side toolbar for clear, pause, bookmarks and bug reports.</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="filter">
+      <p class="eyebrow">filter</p>
+      <h2><span lang="ru">Язык фильтра</span><span lang="en">Filter language</span></h2>
+      <p class="sub">
+        <span lang="ru">Условия складываются через пробел (это «И»). Тот же синтаксис работает в приложении и в плагине, с автодополнением ключей.</span>
+        <span lang="en">Terms are combined with a space (that means AND). The same syntax works in the app and in the plugin, with key autocompletion.</span>
+      </p>
+      <table class="ref">
+        <tbody>
+          <tr><th><code>package:mine</code></th><td><span lang="ru">Приложение, которое сейчас открыто на экране телефона. Или конкретный пакет: <code>package:com.example</code>.</span><span lang="en">The app currently on the phone's screen. Or a specific package: <code>package:com.example</code>.</span></td></tr>
+          <tr><th><code>level:warn</code></th><td><span lang="ru">Этот уровень и выше: предупреждения и ошибки.</span><span lang="en">This level and above: warnings and errors.</span></td></tr>
+          <tr><th><code>tag:Network</code></th><td><span lang="ru">Тег содержит строку. Точное совпадение — <code>tag=:MyApp</code>, регулярное выражение — <code>tag~:My.*Tag</code>.</span><span lang="en">The tag contains the string. Exact match: <code>tag=:MyApp</code>, regular expression: <code>tag~:My.*Tag</code>.</span></td></tr>
+          <tr><th><code>message:"receiver mode"</code></th><td><span lang="ru">Текст сообщения; фразы берите в кавычки. Так же работают <code>process:</code> и <code>line:</code>.</span><span lang="en">The message text; put phrases in quotes. <code>process:</code> and <code>line:</code> work the same way.</span></td></tr>
+          <tr><th><code>age:5m</code></th><td><span lang="ru">Только записи за последние 5 минут. Суффиксы: <code>s</code>, <code>m</code>, <code>h</code>, <code>d</code>.</span><span lang="en">Only entries from the last 5 minutes. Suffixes: <code>s</code>, <code>m</code>, <code>h</code>, <code>d</code>.</span></td></tr>
+          <tr><th><code>is:crash</code></th><td><span lang="ru">Краши и ANR.</span><span lang="en">Crashes and ANRs.</span></td></tr>
+          <tr><th><code>-tag:Noise</code></th><td><span lang="ru">Минус исключает. Также есть <code>|</code> («или») и скобки: <code>(tag:Net | tag:Http) level:error</code>.</span><span lang="en">A minus excludes. There is also <code>|</code> (OR) and parentheses: <code>(tag:Net | tag:Http) level:error</code>.</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="features">
+      <p class="eyebrow">features</p>
+      <h2><span lang="ru">Что ещё внутри</span><span lang="en">What else is inside</span></h2>
+      <p class="sub" style="margin-bottom:12px">
+        <span lang="ru">Всё, что обычно нужно, когда разбираешь баг на живом телефоне.</span>
+        <span lang="en">Everything you usually need when chasing a bug on a real phone.</span>
+      </p>
+      <dl class="ledger">
+        <div><dt><span lang="ru">Вкладки</span><span lang="en">Tabs</span></dt><dd><span lang="ru">У каждой вкладки своя сессия: устройство, фильтр и поток логов не мешают друг другу.</span><span lang="en">Each tab has its own session: device, filter and log stream stay independent.</span></dd></div>
+        <div><dt><span lang="ru">Краши и ANR</span><span lang="en">Crashes and ANRs</span></dt><dd><span lang="ru">Находятся автоматически, стектрейсы сворачиваются, по ним можно переходить стрелками.</span><span lang="en">Detected automatically, stack traces fold, and you can jump between them with arrows.</span></dd></div>
+        <div><dt><span lang="ru">Баг-репорт в один клик</span><span lang="en">One-click bug report</span></dt><dd><span lang="ru">Markdown с устройством, версией приложения, фильтром и нужными строками: закладки или хвост видимого лога.</span><span lang="en">Markdown with the device, app version, filter and the relevant lines: bookmarks or the tail of the visible log.</span></dd></div>
+        <div><dt><span lang="ru">Закладки</span><span lang="en">Bookmarks</span></dt><dd><span lang="ru">Отметьте строки, и они попадут в баг-репорт и сохранённую сессию.</span><span lang="en">Mark lines and they go into the bug report and the saved session.</span></dd></div>
+        <div><dt><span lang="ru">Телефон под рукой</span><span lang="en">The phone at hand</span></dt><dd><span lang="ru">Скриншот, перезапуск и остановка приложения, очистка данных, deep link, информация о приложении.</span><span lang="en">Screenshot, restart and force-stop an app, clear its data, open a deep link, app info.</span></dd></div>
+        <div><dt>Wi-Fi ADB</dt><dd><span lang="ru">Подключение по Wi-Fi из меню: из USB, по коду сопряжения (Android 11+) или по IP:порт, плюс сканирование сети.</span><span lang="en">Connect over Wi-Fi from the menu: from USB, by pairing code (Android 11+) or by IP:port, plus network scan.</span></dd></div>
+        <div><dt>JSON, Intent, URL</dt><dd><span lang="ru">Ссылки кликабельны, JSON и Intent раскрываются в читаемый вид из контекстного меню строки.</span><span lang="en">Links are clickable; JSON and Intent expand into a readable form from the row's context menu.</span></dd></div>
+        <div><dt><span lang="ru">Сессии и сравнение</span><span lang="en">Sessions and compare</span></dt><dd><span lang="ru">Сохраняйте лог в файл, открывайте в новой вкладке и сравнивайте два запуска.</span><span lang="en">Save a log to a file, reopen it in a new tab and compare two runs.</span></dd></div>
+        <div><dt><span lang="ru">Лёгкий список</span><span lang="en">A light list</span></dt><dd><span lang="ru">Список рисуется одним холстом: по замерам процессор нагружен в 1,7–2,4 раза меньше, чем при отдельном элементе на строку.</span><span lang="en">The list is drawn on a single canvas: measured CPU use is 1.7–2.4× lower than with one UI node per row.</span></dd></div>
+        <div><dt><span lang="ru">Тема в JSON</span><span lang="en">JSON theme</span></dt><dd><span lang="ru">Цвета меняются файлом <code>~/.logcactus/theme.json</code> и применяются сразу, без перезапуска.</span><span lang="en">Colours are changed with <code>~/.logcactus/theme.json</code> and apply instantly, no restart.</span></dd></div>
+        <div><dt><span lang="ru">Для AI-агентов</span><span lang="en">For AI agents</span></dt><dd><span lang="ru">Встроенный MCP-сервер: агент читает логи и краши, но ничего не меняет. По умолчанию выключен и слушает только 127.0.0.1.</span><span lang="en">A built-in MCP server: an agent can read logs and crashes but change nothing. Off by default and listens on 127.0.0.1 only.</span></dd></div>
+        <div><dt><span lang="ru">adb и aapt2 внутри</span><span lang="en">adb and aapt2 inside</span></dt><dd><span lang="ru">Ничего устанавливать не нужно: с приложением идут свои adb и aapt2, поэтому в списке приложений есть значки и названия.</span><span lang="en">Nothing to install: the app ships its own adb and aapt2, so app lists show icons and names.</span></dd></div>
+      </dl>
+    </section>
+
+    <section id="download">
+      <p class="eyebrow">download</p>
+      <h2><span lang="ru">Скачать</span><span lang="en">Download</span> <span class="ver" id="ver"></span></h2>
+      <p class="sub">
+        <span lang="ru">Бесплатно, без регистрации. Файлы берутся из последнего релиза на GitHub.</span>
+        <span lang="en">Free, no sign-up. Files come from the latest GitHub release.</span>
+      </p>
+      <div class="dl">
+        <div class="card">
+          <h3>macOS</h3>
+          <p><span lang="ru">Для Apple Silicon (M1 и новее). Подписано Developer ID и нотаризовано Apple, поэтому открывается без обходных путей.</span><span lang="en">For Apple Silicon (M1 and later). Signed with Developer ID and notarized by Apple, so it opens without workarounds.</span></p>
+          <p><span lang="ru">Intel-Mac не поддерживается.</span><span lang="en">Intel Macs are not supported.</span></p>
+          <span class="spacer"></span>
+          <a class="btn primary" id="dl-mac" href="https://github.com/alx-in-dev/LogCat-by-cactus/releases/latest"><span lang="ru">Скачать .dmg</span><span lang="en">Download .dmg</span></a>
+        </div>
+        <div class="card">
+          <h3>Windows</h3>
+          <p><span lang="ru">Установщик .msi с ярлыком и пунктом в меню «Пуск».</span><span lang="en">An .msi installer with a desktop shortcut and a Start menu entry.</span></p>
+          <p id="win-note"><span lang="ru">Установщик ещё не подписан: SmartScreen покажет предупреждение, нажмите «Подробнее» → «Выполнить в любом случае». Подпись подключаем через SignPath Foundation.</span><span lang="en">The installer is not signed yet: SmartScreen will warn you; click “More info” → “Run anyway”. We are setting up signing through SignPath Foundation.</span></p>
+          <span class="spacer"></span>
+          <a class="btn" id="dl-win" href="https://github.com/alx-in-dev/LogCat-by-cactus/releases/latest"><span lang="ru">Страница релиза</span><span lang="en">Release page</span></a>
+        </div>
+        <div class="card">
+          <h3>Android Studio</h3>
+          <p><span lang="ru">Плагин для Android Studio 2026.1 и новее. Settings → Plugins → ⚙ → Install Plugin from Disk, затем перезапуск Студии.</span><span lang="en">A plugin for Android Studio 2026.1 and newer. Settings → Plugins → ⚙ → Install Plugin from Disk, then restart the IDE.</span></p>
+          <p><span lang="ru">Архив подписан самоподписанным сертификатом: целостность проверяется, но издатель не считается доверенным у JetBrains.</span><span lang="en">The archive is signed with a self-signed certificate: integrity is verified, but JetBrains does not treat the publisher as trusted.</span></p>
+          <span class="spacer"></span>
+          <a class="btn primary" id="dl-plugin" href="https://github.com/alx-in-dev/LogCat-by-cactus/releases/latest"><span lang="ru">Скачать плагин .zip</span><span lang="en">Download plugin .zip</span></a>
+        </div>
+      </div>
+      <p class="note">
+        <span lang="ru">Контрольные суммы лежат в релизе в файле SHA256SUMS.txt. Хотите собрать сами — инструкция в <a href="https://github.com/alx-in-dev/LogCat-by-cactus#быстрый-старт">README</a>.</span>
+        <span lang="en">Checksums are in the release as SHA256SUMS.txt. To build it yourself, see the <a href="https://github.com/alx-in-dev/LogCat-by-cactus#быстрый-старт">README</a>.</span>
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="cols" id="code-signing">
+      <div>
+        <h4>Code signing policy</h4>
+        <p>Free code signing provided by <a href="https://signpath.io">SignPath.io</a>, certificate by <a href="https://signpath.org">SignPath Foundation</a>.</p>
+        <p>
+          <span lang="ru">Windows-установщик собирается из репозитория в GitHub Actions и подписывается только после ручного одобрения каждого запроса.</span>
+          <span lang="en">The Windows installer is built from the repository in GitHub Actions and signed only after every request is approved manually.</span>
+        </p>
+        <p>Committers and reviewers: <a href="https://github.com/alx-in-dev">alx-in-dev</a>. Approvers: <a href="https://github.com/alx-in-dev">alx-in-dev</a>.</p>
+        <p>
+          <b>Privacy policy.</b>
+          <span lang="ru">Программы не передают информацию в другие сетевые системы, кроме случаев, когда этого явно требует пользователь: ссылки открываются в браузере по клику, а adb подключается только к устройствам, которые вы указали сами.</span>
+          <span lang="en">The programs do not transfer any information to other networked systems unless specifically requested by the user: links open in your browser on click, and adb connects only to devices you specified yourself.</span>
+        </p>
+      </div>
+      <div>
+        <h4><span lang="ru">Проект</span><span lang="en">Project</span></h4>
+        <ul>
+          <li><a href="https://github.com/alx-in-dev/LogCat-by-cactus">GitHub</a></li>
+          <li><a href="https://github.com/alx-in-dev/LogCat-by-cactus/releases">Releases</a></li>
+          <li><a href="https://github.com/alx-in-dev/LogCat-by-cactus/blob/main/CHANGELOG.md">Changelog</a></li>
+          <li><a href="https://github.com/alx-in-dev/LogCat-by-cactus/issues"><span lang="ru">Сообщить об ошибке</span><span lang="en">Report an issue</span></a></li>
+          <li><a href="https://github.com/alx-in-dev/LogCat-by-cactus/blob/main/LICENSE">Apache License 2.0</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="legal">“Android” and “Android Studio” are trademarks of Google LLC. This project is not affiliated with or endorsed by Google or JetBrains.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  /* язык */
+  var html=document.documentElement, btn=document.getElementById('lang');
+  function setLang(l){html.setAttribute('data-lang',l);html.lang=l;btn.textContent=l==='ru'?'EN':'RU';try{localStorage.setItem('lang',l)}catch(e){}}
+  var saved=null;try{saved=localStorage.getItem('lang')}catch(e){}
+  setLang(saved||((navigator.language||'ru').toLowerCase().indexOf('ru')===0?'ru':'en'));
+  btn.addEventListener('click',function(){setLang(html.getAttribute('data-lang')==='ru'?'en':'ru')});
+
+  /* демо: выдуманные логи (age — сколько секунд назад) */
+  var MINE='com.example.shop';
+  var D=[
+   [600,'D','SystemUI','com.android.systemui','StatusBar: updateStates notificationCount=3'],
+   [560,'I','ShopApp',MINE,'App started, build 2.14.0 (214)'],
+   [545,'D','ShopApp',MINE,'Restoring session for user 41'],
+   [520,'I','system_server','system_server','Start proc 4821:com.example.shop/u0a213 for activity MainActivity'],
+   [470,'D','Network',MINE,'GET /api/v2/catalog?page=1 -> 200 (118 ms)'],
+   [430,'V','ImageLoader',MINE,'cache hit: banner_summer.webp'],
+   [380,'W','Network',MINE,'GET /api/v2/prices timeout after 5000 ms, retry 1/3'],
+   [376,'I','Network',MINE,'GET /api/v2/prices -> 200 (212 ms) after retry'],
+   [330,'D','WifiService','system_server','scan results: 14 networks'],
+   [290,'I','Cart',MINE,'cart updated: items=3 total=4290.00'],
+   [250,'W','Payments',MINE,'card token expires in 2 days, asking user to refresh'],
+   [200,'D','SystemUI','com.android.systemui','Keyguard: show=false occluded=false'],
+   [150,'E','Network',MINE,'POST /api/v2/orders failed: java.net.SocketTimeoutException'],
+   [147,'W','Network',MINE,'POST /api/v2/orders retry 1/3 in 2000 ms'],
+   [120,'I','Cart',MINE,'cart cleared by user'],
+   [95,'D','ShopApp',MINE,'Navigating to ProductDetails id=88231'],
+   [70,'W','ImageLoader',MINE,'decode took 340 ms for product_88231_hero.jpg'],
+   [58,'D','ActivityManager','system_server','Displayed com.example.shop/.ui.ProductActivity: +310ms'],
+   [31,'I','Analytics',MINE,'event=product_view id=88231 source=catalog'],
+   [22,'E','AndroidRuntime',MINE,'FATAL EXCEPTION: main  Process: com.example.shop, PID: 4821',true],
+   [22,'E','AndroidRuntime',MINE,'java.lang.NullPointerException: Attempt to invoke virtual method \'java.lang.String Price.format()\' on a null object reference',true],
+   [22,'E','AndroidRuntime',MINE,'\tat com.example.shop.ui.ProductActivity.bindPrice(ProductActivity.kt:142)',true],
+   [21,'I','ActivityManager','system_server','Process com.example.shop (pid 4821) has died: fg TOP'],
+   [9,'D','SystemUI','com.android.systemui','StatusBar: updateStates notificationCount=3']
+  ];
+  var LV={V:0,D:1,I:2,W:3,E:4,A:5};
+  var LVN={verbose:0,v:0,debug:1,d:1,info:2,i:2,warn:3,warning:3,w:3,error:4,e:4,assert:5,a:5};
+  var now='14:20:';
+  function stamp(age){var s=1200-age,m=Math.floor(s/60),ss=s%60;return '14:'+(m<10?'0':'')+m+':'+(ss<10?'0':'')+ss+'.'+(100+age*7%900)}
+  var rows=D.map(function(r){return{age:r[0],lv:r[1],tag:r[2],pkg:r[3],msg:r[4],crash:!!r[5],t:stamp(r[0])}});
+
+  var TERM=/(-?)([a-z]+)(~|=)?:("[^"]*"|\S*)|(-?)("[^"]*"|\S+)/gi;
+  function parse(q){var out=[],m;TERM.lastIndex=0;while((m=TERM.exec(q))){
+    if(m[2]){out.push({neg:m[1]==='-',key:m[2].toLowerCase(),op:m[3]||'',val:m[4].replace(/^"|"$/g,'')})}
+    else if(m[6]){out.push({neg:m[5]==='-',key:'',op:'',val:m[6].replace(/^"|"$/g,'')})}}
+    return out}
+  function textMatch(hay,t){
+    var v=t.val;
+    if(t.op==='~'){return new RegExp(v,'i').test(hay)}
+    if(t.op==='='){return hay.toLowerCase()===v.toLowerCase()}
+    return hay.toLowerCase().indexOf(v.toLowerCase())>=0}
+  function test(r,t){
+    var k=t.key,res;
+    if(k==='tag')res=textMatch(r.tag,t);
+    else if(k==='message')res=textMatch(r.msg,t);
+    else if(k==='line')res=textMatch(r.tag+' '+r.msg,t);
+    else if(k==='package'||k==='process'||k==='app'||k==='name'){res=(t.val==='mine'&&t.op==='')?r.pkg===MINE:textMatch(r.pkg,t)}
+    else if(k==='level'){var n=LVN[t.val.toLowerCase()];res=n===undefined?true:LV[r.lv]>=n}
+    else if(k==='age'){var m=/^(\d+)([smhd])$/i.exec(t.val);if(!m)res=true;else{var mul={s:1,m:60,h:3600,d:86400}[m[2].toLowerCase()];res=r.age<=parseInt(m[1],10)*mul}}
+    else if(k==='is'){res=t.val.toLowerCase()==='crash'?r.crash||/ANR/.test(r.msg):true}
+    else if(k===''){res=(r.tag+' '+r.pkg+' '+r.msg).toLowerCase().indexOf(t.val.toLowerCase())>=0}
+    else res=true;
+    return t.neg?!res:res}
+
+  var q=document.getElementById('q'),log=document.getElementById('log'),count=document.getElementById('count'),box=document.getElementById('qbox'),scope=document.getElementById('scope'),chipsEl=document.getElementById('chips');
+  var PRESETS=['package:mine level:warn','is:crash','tag~:Net.* -message:retry','age:60s package:mine','message:"cart"'];
+  function esc(s){return s.replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+  function render(){
+    var terms=parse(q.value),bad=false,list=[];
+    try{list=rows.filter(function(r){return terms.every(function(t){return test(r,t)})})}catch(e){bad=true;list=rows}
+    box.setAttribute('data-bad',bad?'true':'false');
+    scope.textContent=terms.some(function(t){return t.key==='package'&&t.val==='mine'&&!t.neg})?'mine: '+MINE:'';
+    if(!list.length){log.innerHTML='<li class="empty">'+(html.lang==='ru'?'Ничего не найдено. Ослабьте условие или уберите «-».':'Nothing found. Loosen a term or drop a “-”.')+'</li>'}
+    else log.innerHTML=list.map(function(r,i){return '<li class="row lvl-'+r.lv+'" style="animation-delay:'+Math.min(i*8,120)+'ms"><span class="lv lv-'+r.lv+'">'+r.lv+'</span><span class="t">'+r.t+'</span><span class="g">'+esc(r.tag)+'</span><span class="m">'+esc(r.msg)+'</span></li>'}).join('');
+    log.scrollTop=log.scrollHeight;
+    count.textContent=(html.lang==='ru'?'Показано ':'Showing ')+list.length+(html.lang==='ru'?' из ':' of ')+rows.length;
+    [].forEach.call(chipsEl.children,function(c){c.setAttribute('aria-pressed',c.textContent===q.value?'true':'false')})}
+  PRESETS.forEach(function(p){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=p;b.addEventListener('click',function(){q.value=p;render()});chipsEl.appendChild(b)});
+  q.addEventListener('input',render);
+  new MutationObserver(render).observe(html,{attributes:true,attributeFilter:['data-lang']});
+  render();
+
+  /* ссылки на скачивание из последнего релиза */
+  fetch('https://api.github.com/repos/alx-in-dev/LogCat-by-cactus/releases/latest',{headers:{Accept:'application/vnd.github+json'}})
+   .then(function(r){return r.ok?r.json():Promise.reject()})
+   .then(function(rel){
+     document.getElementById('ver').textContent=rel.tag_name;
+     function pick(re){return (rel.assets||[]).filter(function(a){return re.test(a.name)})[0]}
+     var dmg=pick(/\.dmg$/i),msi=pick(/\.msi$/i),zip=pick(/plugin.*\.zip$/i);
+     if(dmg)document.getElementById('dl-mac').href=dmg.browser_download_url;
+     if(zip)document.getElementById('dl-plugin').href=zip.browser_download_url;
+     if(msi){var w=document.getElementById('dl-win');w.href=msi.browser_download_url;w.className='btn primary';w.innerHTML='<span lang="ru">Скачать .msi</span><span lang="en">Download .msi</span>'}
+   }).catch(function(){});
+})();
+</script>
+</body>
+</html>

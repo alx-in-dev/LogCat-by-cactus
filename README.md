@@ -4,6 +4,8 @@ Android Logcat вне Android Studio и внутри неё. Два проект
 
 ![LogCat by cactus](docs/screenshot.png)
 
+**Сайт:** https://alx-in-dev.github.io/LogCat-by-cactus/ · **Скачать:** [последний релиз](https://github.com/alx-in-dev/LogCat-by-cactus/releases/latest)
+
 | Каталог | Что это |
 |---|---|
 | [`LogCactus/`](LogCactus) | Десктопное приложение (Kotlin + Compose Multiplatform, macOS и Windows): вкладки с независимыми сессиями, язык фильтра (`tag:`, `level:`, `package:mine`, `age:`, `is:crash`), краши и ANR, закладки, баг-репорт, Wi-Fi ADB, встроенный adb/aapt2 |
