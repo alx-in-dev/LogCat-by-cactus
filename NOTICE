@@ -1,0 +1,18 @@
+LogCat by cactus
+Copyright 2026 cactus (github.com/alx-in-dev)
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party material bundled in this repository:
+
+* adb and aapt2 binaries (LogCactus/src/main/resources/logcactus/bin/) are built from the
+  Android Open Source Project and distributed under the Apache License 2.0; their full
+  notices are in adb-NOTICE.txt and aapt2-NOTICE.txt next to the binaries.
+* Logcat icons in LogCactus/icons/original-studio-logcat/ and the colour defaults in
+  LogCactus/theme.sample.json come from JetBrains/android (Android Studio), Apache License 2.0.
+* The behaviour of the log list and filter is modelled on the New Logcat in JetBrains/android
+  (Apache License 2.0); see docs/logcat_v2_reference.md. Package names under
+  com.android.tools.idea.logcat.standalone mirror that structure.
+
+"Android" and "Android Studio" are trademarks of Google LLC. This project is not affiliated
+with or endorsed by Google or JetBrains.

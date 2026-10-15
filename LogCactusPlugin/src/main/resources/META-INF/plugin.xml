@@ -1,0 +1,31 @@
+<idea-plugin>
+    <id>com.cactus.logcactus</id>
+    <name>LogCactus</name>
+    <vendor>Cactus</vendor>
+    <description><![CDATA[
+      A logcat viewer for Android devices with a powerful filter language, crash and ANR tracking,
+      bookmarks and one-click bug reports.
+    ]]></description>
+
+    <change-notes><![CDATA[
+      <b>0.1.0</b> — first preview: device picker, level and query filter (tag:, level:, package:, age:, is:crash …),
+      pause/clear, bookmarks, crash and ANR tracking, bug report from selection, visible lines or bookmarks.
+    ]]></change-notes>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.android</depends>
+    <dependencies>
+        <module name="intellij.platform.compose"/>
+        <module name="intellij.platform.jewel.foundation"/>
+        <module name="intellij.platform.jewel.ui"/>
+        <module name="intellij.platform.jewel.ideLafBridge"/>
+    </dependencies>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="LogCactus" anchor="bottom" canCloseContents="true" icon="/icons/logcactus.svg"
+                    factoryClass="com.cactus.logcactus.plugin.LogCactusToolWindowFactory"/>
+        <projectConfigurable parentId="tools" id="com.cactus.logcactus.settings" displayName="LogCactus"
+                             instance="com.cactus.logcactus.plugin.settings.LogCactusConfigurable"/>
+        <notificationGroup id="LogCactus" displayType="BALLOON"/>
+    </extensions>
+</idea-plugin>

@@ -1,0 +1,37 @@
+# Сборка и кэши
+build/
+.gradle/
+.kotlin/
+out/
+local.properties
+*.hprof
+hs_err_pid*
+
+# IDE
+.idea/
+.intellijPlatform/
+*.iml
+.vscode/
+
+# ОС
+.DS_Store
+
+# Секреты и подпись: ключи, сертификаты, токены не коммитим
+*.pem
+*.p8
+*.p12
+*.key
+*.jks
+*.keystore
+*.mobileprovision
+.env
+.env.*
+secrets/
+
+# Готовые дистрибутивы публикуются как GitHub Releases, а не коммитятся
+*.dmg
+*.msi
+*.zip
+
+# Исключение: Gradle wrapper
+!gradle/wrapper/gradle-wrapper.jar

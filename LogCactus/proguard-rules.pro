@@ -1,0 +1,14 @@
+# Минимальные правила для createReleaseDistributable: без обфускации, без падений на предупреждениях.
+-dontwarn **
+-dontobfuscate
+-keep class com.cactus.logcactus.** { *; }
+-keep class com.android.tools.idea.** { *; }
+-keepclassmembers class * { @kotlin.jvm.JvmStatic *; }
+-keep class kotlinx.coroutines.swing.** { *; }
+-keep class org.jetbrains.skiko.** { *; }
+-keep class org.jetbrains.skia.** { *; }
+-keep class com.formdev.flatlaf.** { *; }
+-keep class org.koin.** { *; }
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
+-keep class kotlinx.serialization.** { *; }
+-keep class com.sun.net.httpserver.** { *; }
