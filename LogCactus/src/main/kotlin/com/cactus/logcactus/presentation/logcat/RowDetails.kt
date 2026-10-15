@@ -12,7 +12,7 @@ object RowDetails {
   private val INTENT_PART = Regex("""(\w+)=(\S+)|\(([^)]*)\)""")
 
   /** Раскрытие: [start] — индекс начала полезной части в исходном сообщении, [lines] — её читаемое представление. */
-  class Expansion(val start: Int, val lines: List<String>, val url: Boolean = false)
+  class Expansion(val start: Int, val lines: List<String>, val url: Boolean = false, val json: Boolean = false)
 
   // Дёшево отсекает почти все строки без полного разбора (вызывается для каждой строки на каждом кадре).
   fun mayBeExpandable(message: String): Boolean {
@@ -25,7 +25,7 @@ object RowDetails {
     val js = jsonStart(message)
     if (js >= 0) {
       val lines = prettyJson(message.substring(js), lenient = true)
-      if (lines != null) return Expansion(js, lines)
+      if (lines != null) return Expansion(js, lines, json = true)
     }
     val ii = message.indexOf("Intent").let { if (it >= 0 && message.indexOf('{', it) >= 0) it else -1 }
     if (ii >= 0) parseIntent(message.substring(ii))?.let { return Expansion(ii, it) }

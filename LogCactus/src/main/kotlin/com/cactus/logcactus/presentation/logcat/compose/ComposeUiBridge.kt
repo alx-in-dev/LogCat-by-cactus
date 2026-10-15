@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -1122,7 +1123,9 @@ class ComposeUiBridge(
         val cut = base.length - (entry.message.length - item.payloadStart)
         if (base.text.endsWith(entry.message) && cut in 0..base.length) base.subSequence(0, cut) else base
       }
-      CanvasItem.Kind.DETAIL -> AnnotatedString(" ".repeat(canvasPrefixLength(entry)) + item.line)
+      CanvasItem.Kind.DETAIL ->
+        if (item.json) JsonHighlight.line(" ".repeat(canvasPrefixLength(entry)), item.line, jsonColors())
+        else AnnotatedString(" ".repeat(canvasPrefixLength(entry)) + item.line)
     }
   }
 
@@ -1177,6 +1180,10 @@ class ComposeUiBridge(
   }
 
   fun levelColors(level: String): LevelColors = levelColor(level)
+
+  // Тёмная ли тема — по яркости фона строки палитры; от неё зависят цвета JSON и фон карточки.
+  fun isDarkTheme(): Boolean = awtToCompose(palette.uiBgEven).luminance() < 0.5f
+  fun jsonColors(): JsonColors = if (isDarkTheme()) JsonColors.DARK else JsonColors.LIGHT
 
   fun canvasSignature(): String = renderSignature()
 
@@ -1274,7 +1281,8 @@ class ComposeUiBridge(
       palette.levelWarn.rgb.toString(),
       palette.levelInfo.rgb.toString(),
       palette.levelDebug.rgb.toString(),
-      palette.levelVerbose.rgb.toString()
+      palette.levelVerbose.rgb.toString(),
+      palette.uiBgEven.rgb.toString()
     ).joinToString("|")
   }
 

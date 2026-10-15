@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -423,6 +424,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawRow(
     drawText(letter, colors.badgeFg, Offset(barW + (badgeW - letter.size.width) / 2f, by + (badgeH - letter.size.height) / 2f))
   }
   clipRect(left = gutterPx) {
+    if (item.kind == CanvasItem.Kind.DETAIL && item.json) drawJsonCard(item, layout, top, height, colors.message, ui.isDarkTheme(), gutterPx - hShift)
     if (matches != null) {
       // подсветка найденного (Cmd+F): текущее совпадение другим цветом
       val len = layout.layoutInput.text.length
@@ -438,6 +440,39 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawRow(
       translate(gutterPx - hShift, top) { drawPath(layout.getPathForRange(selection.first, selection.last + 1), SELECTION_COLOR) }
     }
     drawText(layout, colors.message, Offset(gutterPx - hShift, top))
+  }
+}
+
+/**
+ * Строки раскрытого JSON рисуются одной карточкой: нейтральный чуть отличающийся фон и полоска цвета уровня слева, скругления
+ * только у первой и последней строки. Карточка начинается чуть левее текста JSON (в пустом отступе под колонки).
+ */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawJsonCard(
+  item: CanvasItem,
+  layout: TextLayoutResult,
+  top: Float,
+  height: Float,
+  levelColor: Color,
+  dark: Boolean,
+  textX: Float
+) {
+  val pad = 10.dp.toPx()
+  val r = 5.dp.toPx()
+  val prefix = (layout.layoutInput.text.length - item.line.length).coerceAtLeast(0)
+  val left = textX + layout.getHorizontalPosition(prefix, true) - pad
+  val right = size.width - 18.dp.toPx() // не заходим под вертикальный скроллбар
+  if (right <= left) return
+  // Скругление рисуем «за краем» строки и обрезаем по её границам: соседние строки карточки стыкуются без швов.
+  val y0 = if (item.first) top else top - r
+  val y1 = if (item.last) top + height else top + height + r
+  val shape = androidx.compose.ui.graphics.Path().apply {
+    addRoundRect(androidx.compose.ui.geometry.RoundRect(left, y0, right, y1, CornerRadius(r)))
+  }
+  clipRect(top = top, bottom = top + height) {
+    clipPath(shape) {
+      drawRect(if (dark) Color(0x0DFFFFFF) else Color(0x0A000000), Offset(left, y0), Size(right - left, y1 - y0))
+      drawRect(levelColor.copy(alpha = 0.85f), Offset(left, y0), Size(3.dp.toPx(), y1 - y0))
+    }
   }
 }
 

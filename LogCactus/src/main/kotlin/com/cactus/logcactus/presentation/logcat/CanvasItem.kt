@@ -16,7 +16,11 @@ class CanvasItem(
   val expanded: Boolean = false,
   val hidden: List<LogEntry> = emptyList(),
   val payloadStart: Int = -1,
-  val line: String = ""
+  val line: String = "",
+  // Строка раскрытия JSON (не Intent/URL): рисуется карточкой; first/last — края карточки (для скруглений).
+  val json: Boolean = false,
+  val first: Boolean = false,
+  val last: Boolean = false
 ) {
   enum class Kind { ENTRY, STACK, HEAD, DETAIL }
 
@@ -102,7 +106,9 @@ class CanvasFolder(private val minRun: Int = StackFolder.MIN_RUN) {
     val items = exp?.let {
       buildList {
         add(CanvasItem(e, CanvasItem.Kind.HEAD, expanded = true, payloadStart = it.start))
-        it.lines.forEach { l -> add(CanvasItem(e, CanvasItem.Kind.DETAIL, expanded = true, line = l)) }
+        it.lines.forEachIndexed { n, l ->
+          add(CanvasItem(e, CanvasItem.Kind.DETAIL, expanded = true, line = l, json = it.json, first = n == 0, last = n == it.lines.lastIndex))
+        }
       }
     }
     expansions[e] = items
