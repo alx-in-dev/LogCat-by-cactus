@@ -1,0 +1,96 @@
+name: Windows installer
+
+# Собирает .msi на GitHub-раннере и, если подключён SignPath, подписывает его.
+#  - push тега v*  → сборка, подпись и загрузка .msi в GitHub Release этого тега;
+#  - ручной запуск → сборка (и подпись); в Release кладётся только при publish=true,
+#    иначе .msi остаётся артефактом запуска (для проверки конвейера).
+# Подпись включается автоматически, когда в Settings → Secrets and variables → Actions заданы
+# переменная SIGNPATH_ORGANIZATION_ID и секрет SIGNPATH_API_TOKEN (см. docs/code-signing.md).
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Тег релиза (например, v1.3.10)'
+        required: true
+      publish:
+        description: 'Загрузить .msi в GitHub Release'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  msi:
+    runs-on: windows-latest
+    env:
+      TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
+      PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
+      SIGNING: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' && secrets.SIGNPATH_API_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Тесты на Windows не гоняем: CanvasSelectionTest (headless-двойной клик) там падает, на macOS они проходят.
+      - name: Build .msi
+        working-directory: LogCactus
+        shell: cmd
+        run: gradlew.bat packageMsi --no-daemon --console=plain
+
+      - name: Upload unsigned installer
+        id: upload-unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: msi-unsigned
+          path: LogCactus/build/compose/binaries/main/msi/*.msi
+          if-no-files-found: error
+
+      - name: Submit signing request to SignPath
+        if: env.SIGNING == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'logcat-by-cactus' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG || 'release-signing' }}
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: signed
+
+      - name: Pick installer
+        shell: bash
+        run: |
+          mkdir -p dist
+          if [ "$SIGNING" = "true" ]; then cp signed/*.msi dist/; else cp LogCactus/build/compose/binaries/main/msi/*.msi dist/; fi
+          ls -la dist
+
+      - name: Keep installer as run artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.SIGNING == 'true' && 'msi-signed' || 'msi-unsigned-final' }}
+          path: dist/*.msi
+
+      - name: Attach to GitHub Release
+        if: env.PUBLISH == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "$TAG" --notes "См. CHANGELOG.md"
+          gh release upload "$TAG" dist/*.msi --clobber
+          # контрольные суммы: дописываем .msi в существующий SHA256SUMS.txt
+          gh release download "$TAG" -p SHA256SUMS.txt || true
+          touch SHA256SUMS.txt
+          (cd dist && sha256sum *.msi) >> SHA256SUMS.txt
+          awk '!seen[$2]++' SHA256SUMS.txt > SHA256SUMS.new && mv SHA256SUMS.new SHA256SUMS.txt
+          gh release upload "$TAG" SHA256SUMS.txt --clobber
