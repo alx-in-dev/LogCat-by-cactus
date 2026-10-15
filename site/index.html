@@ -109,7 +109,7 @@ h1 em{font-style:normal;color:var(--accent)}
 .tb.inert{cursor:default}.tb.inert:hover{background:var(--box)}
 .tb.end{margin-top:auto}
 .log{margin:0;padding:4px 0;list-style:none;height:392px;overflow:auto;background:var(--list);border-radius:6px;font:12.5px/1.5 var(--mono);scrollbar-width:thin;scrollbar-color:#3a3f48 transparent}
-.row{display:grid;grid-template-columns:18px 88px 124px minmax(0,1fr);gap:10px;align-items:baseline;padding:1px 8px;cursor:default}
+.row{display:grid;grid-template-columns:18px 88px 124px minmax(0,1fr);gap:0 10px;align-items:baseline;padding:1px 8px;cursor:default}
 .row.new{animation:in .25s ease-out both}
 @keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .row:hover{background:#252d38}
@@ -124,6 +124,11 @@ h1 em{font-style:normal;color:var(--accent)}
 .lv-I{--c:#abc023}.lv-I .b{background:#6a8759;color:#e9f5e6}
 .lv-W{--c:#bbb529}.lv-W .b{background:#bbb529;color:#000}
 .lv-E{--c:#ff6b68}.lv-E .b{background:#cf5b56;color:#000}
+.json{grid-column:4;margin:3px 0 5px;padding:6px 10px;background:#1d2128;border-left:2px solid #305d78;border-radius:4px;font:12px/1.5 var(--mono);color:#a9b7c6;white-space:pre-wrap;overflow-wrap:anywhere;overflow:hidden}
+.json i{font-style:normal}.json .k{color:#9876aa}.json .s{color:#6a8759}.json .n{color:#6897bb}.json .kw{color:#cc7832}
+.row.new .json{animation:jin .6s ease-out both}
+@keyframes jin{from{max-height:0;opacity:0;padding-top:0;padding-bottom:0}to{max-height:360px;opacity:1}}
+.row.lv-W .json{border-left-color:#bbb529}.row.lv-E .json{border-left-color:#cf5b56}
 .empty{padding:26px 12px;color:#959fb0;font-family:var(--mono);font-size:13px}
 .toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);padding:7px 12px;border-radius:7px;background:#3a3f48;color:#fff;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.on{opacity:1}
@@ -134,7 +139,7 @@ h1 em{font-style:normal;color:var(--accent)}
 .demo-note{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:12px 4px 0;color:var(--muted);font-size:14px}
 .demo-note .mono{white-space:nowrap}
 @media (max-width:560px){
-  .row{grid-template-columns:18px minmax(0,1fr)}.row .t,.row .a{display:none}
+  .row{grid-template-columns:18px minmax(0,1fr)}.row .t,.row .a{display:none}.json{grid-column:2}
   .log{height:320px}.dev{flex-basis:100%}.fbox{flex-basis:100%}
 }
 
@@ -390,9 +395,13 @@ footer a{color:var(--text)}
   function pad(n,l){n=String(n);while(n.length<(l||2))n='0'+n;return n}
   function stamp(ts){var d=new Date(ts);return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())+'.'+pad(d.getMilliseconds(),3)}
   var PROD=function(){return R(80000,89999)};
+  var TITLES=['Wireless headphones','Cast iron skillet','Trail running shoes','USB-C dock','Desk lamp','Water bottle 750 ml'];
   var GEN=[
-    function(){return['D','Network',MINE,'GET /api/v2/catalog?page='+R(1,6)+' -> 200 ('+R(60,240)+' ms)']},
-    function(){return['D','Network',MINE,'GET /api/v2/products/'+PROD()+' -> 200 ('+R(40,180)+' ms)']},
+    function(){var pg=R(1,6);return['D','Network',MINE,'<-- 200 GET /api/v2/catalog?page='+pg+' ('+R(60,240)+' ms)',{page:pg,pageSize:20,total:148,items:[{id:PROD(),title:pick(TITLES),price:R(9,99)*100},{id:PROD(),title:pick(TITLES),price:R(9,99)*100}]}]},
+    function(){var id=PROD();return['D','Network',MINE,'<-- 200 GET /api/v2/products/'+id+' ('+R(40,180)+' ms)',{id:id,name:pick(TITLES),price:{amount:R(9,99)*100+.5,currency:'RUB'},inStock:Math.random()>.2,tags:pick([['audio','bluetooth'],['home','kitchen'],['sport']]),rating:R(38,50)/10,seller:{id:R(100,999),name:pick(['Sound Market','Dom Plus','Sport Hub'])}}]},
+    function(){return['I','Network',MINE,'<-- 201 POST /api/v2/orders ('+R(300,900)+' ms)',{orderId:'A-'+R(7000,7999),status:'CREATED',items:R(1,4),total:{amount:R(9,99)*100,currency:'RUB'},eta:'2026-10-'+R(16,24)}]},
+    function(){return['W','Network',MINE,'<-- 429 GET /api/v2/prices ('+R(120,260)+' ms)',{error:{code:'RATE_LIMITED',message:'Too many requests',retryAfterMs:2000}}]},
+    function(){return['E','Network',MINE,'<-- 500 POST /api/v2/orders ('+R(1500,2400)+' ms)',{error:{code:'UPSTREAM_TIMEOUT',message:'Payment provider did not respond',requestId:Math.random().toString(16).slice(2,6)+'-'+Math.random().toString(16).slice(2,6)}}]},
     function(){return['I','Cart',MINE,'cart updated: items='+R(1,6)+' total='+(R(900,9900)).toFixed(2)]},
     function(){return['V','ImageLoader',MINE,'cache hit: '+pick(['banner_summer.webp','product_88231_hero.jpg','avatar_41.png','promo_autumn.webp'])]},
     function(){return['W','Network',MINE,'GET /api/v2/prices timeout after 5000 ms, retry '+R(1,3)+'/3']},
@@ -409,7 +418,8 @@ footer a{color:var(--text)}
   ];
   var buf=[],sinceCrash=0,nextCrash=R(26,38),follow=true,paused=false,wrapOn=true,bmOnly=false,uid=0;
   function add(e,ts){e.ts=ts||Date.now();e.id=++uid;e.crash=!!e.crash;buf.push(e);if(buf.length>CAP)buf.shift();return e}
-  function mk(a){return{lv:a[0],tag:a[1],pkg:a[2],msg:a[3]}}
+  function mk(a){return{lv:a[0],tag:a[1],pkg:a[2],msg:a[3],json:a[4]}}
+  function hay(e){return e.msg+(e.json?' '+JSON.stringify(e.json):'')}
   function emit(){
     var out=[];
     if(++sinceCrash>=nextCrash){
@@ -423,7 +433,8 @@ footer a{color:var(--text)}
     out.forEach(function(e){e=add(e);if(matches(e))appendRow(e,true)});
     trimDom();updateCount();
   }
-  (function seed(){var t0=Date.now(),t=t0-26000;while(t<t0-400){add(mk(pick(GEN)()),t);t+=R(500,1500)}})();
+  (function seed(){var t0=Date.now(),t=t0-26000;while(t<t0-5000){add(mk(pick(GEN)()),t);t+=R(500,1500)}
+    add(mk(GEN[3]()),t0-4200);add(mk(GEN[1]()),t0-2600);add(mk(GEN[4]()),t0-900)})();
 
   /* фильтр */
   var TERM=/(-?)([a-z]+)(~|=)?:("[^"]*"|\S*)|(-?)("[^"]*"|\S+)/gi;
@@ -444,13 +455,13 @@ footer a{color:var(--text)}
   function test(r,t){
     var k=t.key,res;
     if(k==='tag')res=textMatch(r.tag,t);
-    else if(k==='message')res=textMatch(r.msg,t);
-    else if(k==='line')res=textMatch(r.tag+' '+r.msg,t);
+    else if(k==='message')res=textMatch(hay(r),t);
+    else if(k==='line')res=textMatch(r.tag+' '+hay(r),t);
     else if(k==='package'||k==='process'||k==='app'||k==='name'){res=(t.val==='mine'&&t.op==='')?r.pkg===MINE:textMatch(r.pkg,t)}
     else if(k==='level'){var n=LVN[t.val.toLowerCase()];res=n===undefined?true:LV[r.lv]>=n}
     else if(k==='age'){var m=/^(\d+)([smhd])$/i.exec(t.val);if(!m)res=true;else{var mul={s:1,m:60,h:3600,d:86400}[m[2].toLowerCase()];res=(Date.now()-r.ts)/1000<=parseInt(m[1],10)*mul}}
     else if(k==='is'){res=t.val.toLowerCase()==='crash'?r.crash:true}
-    else if(k===''){res=textMatch(r.tag+' '+r.pkg+' '+r.msg,t,rx.checked)}
+    else if(k===''){res=textMatch(r.tag+' '+r.pkg+' '+hay(r),t,rx.checked)}
     else res=true;
     return t.neg?!res:res}
   function matches(e){
@@ -458,7 +469,10 @@ footer a{color:var(--text)}
     try{for(var i=0;i<terms.length;i++)if(!test(e,terms[i]))return false;return true}catch(x){bad=true;return true}}
   function esc(s){return s.replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
 
-  function rowHtml(e){return '<span class="b">'+e.lv+'</span><span class="t">'+stamp(e.ts)+'</span><span class="a">'+esc(e.pkg)+'</span><span class="m">'+esc(e.tag)+' '+esc(e.msg.replace(/^\t/,'    '))+'</span>'}
+  function hl(s){return esc(s).replace(/("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g,function(m,str,colon,kw){
+    if(str)return colon?'<i class="k">'+str+'</i>'+colon:'<i class="s">'+str+'</i>';
+    if(kw)return '<i class="kw">'+m+'</i>';return '<i class="n">'+m+'</i>'})}
+  function rowHtml(e){return (e.json?'':'')+'<span class="b">'+e.lv+'</span><span class="t">'+stamp(e.ts)+'</span><span class="a">'+esc(e.pkg)+'</span><span class="m">'+esc(e.tag)+' '+esc(e.msg.replace(/^\t/,'    '))+'</span>'+(e.json?'<pre class="json">'+hl(JSON.stringify(e.json,null,2))+'</pre>':'')}
   function appendRow(e,fresh){
     var li=document.createElement('li');li.className='row lv-'+e.lv+(fresh&&!reduce?' new':'')+(e.bm?' bm':'');li.dataset.id=e.id;if(e.crash)li.dataset.crash='1';
     li.innerHTML=rowHtml(e);
@@ -524,7 +538,7 @@ footer a{color:var(--text)}
     var id=+li.dataset.id,e=buf.filter(function(x){return x.id===id})[0];if(!e)return;
     e.bm=!e.bm;li.classList.toggle('bm',!!e.bm);if(bmOnly&&!e.bm)render()});
   $('b-bug').addEventListener('click',function(){
-    var lines=buf.filter(matches).slice(-20).map(function(e){return stamp(e.ts)+' '+e.lv+' '+e.tag+': '+e.msg.replace(/^\t/,'    ')});
+    var lines=buf.filter(matches).slice(-20).map(function(e){return stamp(e.ts)+' '+e.lv+' '+e.tag+': '+e.msg.replace(/^\t/,'    ')+(e.json?'\n'+JSON.stringify(e.json,null,2):'')});
     var md='## Bug report\n\n- Device: Pixel_8 (Android 15, API 35)\n- App: com.example.shop 2.14.0\n- Filter: `'+q.value+'`\n\n```\n'+lines.join('\n')+'\n```\n';
     var done=function(){toast(html.lang==='ru'?'Баг-репорт скопирован':'Bug report copied')};
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(md).then(done,function(){toast('Clipboard is blocked')});else done()});
