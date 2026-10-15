@@ -8,6 +8,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
+      <b>0.1.1</b> — fixes a crash on Android Studio Quail 1 (2026.1): the plugin is now built against the oldest supported platform (261) and verified on 261 and 262.<br/>
       <b>0.1.0</b> — first preview: device picker, level and query filter (tag:, level:, package:, age:, is:crash …),
       pause/clear, bookmarks, crash and ANR tracking, bug report from selection, visible lines or bookmarks.
     ]]></change-notes>

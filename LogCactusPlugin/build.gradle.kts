@@ -1,3 +1,5 @@
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+
 plugins {
     id("java")
     kotlin("jvm") version "2.4.10"
@@ -6,7 +8,7 @@ plugins {
 }
 
 group = "com.cactus"
-version = "0.1.0"
+version = "0.1.1"
 
 repositories {
     mavenCentral()
@@ -14,10 +16,15 @@ repositories {
     intellijPlatform { defaultRepositories() }
 }
 
+// Android Studio Quail 1 (2026.1.1) — нижняя граница sinceBuild = 261.
+val minStudio = "2026.1.1.8"
+
 dependencies {
     intellijPlatform {
-        // Для воспроизводимой сборки и верификатора; локальная установка нужна только для runIde (см. ai/architecture.md).
-        local(providers.gradleProperty("studioPath").orElse("/Applications/Android Studio.app"))
+        // Собираем против самой старой поддерживаемой Студии (261): бинарная совместимость в Compose/Jewel держится
+        // «вперёд», а не «назад». -PstudioPath=… подменяет её локальной установкой (для runIde и отладки).
+        val localStudio = providers.gradleProperty("studioPath").orNull
+        if (localStudio != null) local(localStudio) else androidStudio(minStudio)
         bundledPlugin("org.jetbrains.android")
         // Compose и Jewel — те, что уже есть в IDE: свои копии в плагин не кладём (две версии Skiko в одной JVM не работают).
         bundledModule("intellij.platform.compose")
@@ -77,7 +84,11 @@ intellijPlatform {
         token.set(providers.environmentVariable("PUBLISH_TOKEN"))
     }
     pluginVerification {
-        ides { local(providers.gradleProperty("studioPath").orElse("/Applications/Android Studio.app")) }
+        ides {
+            create(IntelliJPlatformType.AndroidStudio, minStudio)
+            create(IntelliJPlatformType.AndroidStudio, "2026.2.1.8")
+            create(IntelliJPlatformType.IntellijIdea, "2026.1.5")
+        }
     }
     pluginConfiguration {
         ideaVersion {
