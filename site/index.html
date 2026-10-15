@@ -7,7 +7,7 @@
 <meta name="description" content="Logcat для Android отдельным окном для macOS и Windows и плагин для Android Studio. Язык фильтра, краши и ANR, закладки, баг-репорт, Wi-Fi ADB. Открытый код, Apache 2.0.">
 <meta property="og:title" content="LogCat by cactus">
 <meta property="og:description" content="Найти нужную строку в Logcat одним запросом. Приложение для macOS и Windows и плагин для Android Studio.">
-<meta property="og:image" content="https://alx-in-dev.github.io/LogCat-by-cactus/screenshot.png">
+<meta property="og:image" content="https://alx-in-dev.github.io/LogCat-by-cactus/og.png">
 <meta name="color-scheme" content="dark light">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='12' y='7' width='8' height='22' rx='4' fill='%237fb77e'/%3E%3Crect x='5' y='13' width='6' height='4' rx='2' fill='%237fb77e'/%3E%3Crect x='5' y='13' width='4' height='9' rx='2' fill='%237fb77e'/%3E%3Crect x='21' y='10' width='6' height='4' rx='2' fill='%237fb77e'/%3E%3Crect x='23' y='10' width='4' height='9' rx='2' fill='%237fb77e'/%3E%3Ccircle cx='16' cy='6' r='3' fill='%23c4f27e'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,10 +55,10 @@ code,.mono{font-family:var(--mono);font-size:.86em}
 @media (max-width:640px){.nav a.hide-s{display:none}}
 
 /* hero */
-.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:center;padding:36px 0 72px}
+.hero{display:grid;grid-template-columns:minmax(0,4.1fr) minmax(0,7.9fr);gap:44px;align-items:start;padding:36px 0 72px}
 @media (max-width:960px){.hero{grid-template-columns:minmax(0,1fr);gap:36px;padding-bottom:48px}}
 .hero>*{min-width:0}
-h1{font-size:clamp(36px,5.2vw,62px);line-height:1.04;letter-spacing:-.03em;font-weight:700;margin:0 0 22px}
+h1{font-size:clamp(36px,5.2vw,62px);line-height:1.04;letter-spacing:-.03em;font-weight:700;margin:-.15em 0 22px}
 h1 em{font-style:normal;color:var(--accent)}
 .lead{color:var(--muted);font-size:20px;margin:0 0 30px;max-width:34em}
 .cta{display:flex;flex-wrap:wrap;gap:12px}
@@ -70,43 +70,79 @@ h1 em{font-style:normal;color:var(--accent)}
 .facts{display:flex;flex-wrap:wrap;gap:8px 18px;margin:26px 0 0;padding:0;list-style:none;color:var(--muted);font-size:15px}
 .facts li::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:8px;vertical-align:middle}
 
-/* demo window */
-.win{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
-.win-bar{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--panel-2)}
-.win-bar i{width:11px;height:11px;border-radius:50%;background:var(--line)}
-.win-bar span{margin-left:8px;font-family:var(--mono);font-size:12px;color:var(--muted)}
-.query{display:flex;align-items:center;gap:10px;margin:14px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg)}
-.query:focus-within{border-color:var(--accent)}
-.query[data-bad="true"]{border-color:var(--lv-E)}
-.query svg{flex:none;width:16px;height:16px;color:var(--muted)}
-.query input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--text);font-family:var(--mono);font-size:15px;padding:12px 0}
-.query .scope{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46%}
-@media (max-width:560px){.query .scope{display:none}}
-.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 12px}
+/* demo: окно приложения (цвета и иконки из самого приложения) */
+.app{--app-bg:#1e1f22;--box:#2b2e34;--col:#24262c;--list:#181a1f;--ink:#dde4f1;--soft:#afb1b3;
+  background:var(--app-bg);color:var(--ink);border:1px solid rgba(255,255,255,.12);border-radius:11px;box-shadow:var(--shadow);overflow:hidden;position:relative;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+.app svg.ic{width:16px;height:16px;fill:currentColor;flex:none;display:block}
+.titlebar{position:relative;display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;background:#37373a;border-bottom:1px solid #000}
+.titlebar i{width:12px;height:12px;border-radius:50%}
+.titlebar i:nth-child(1){background:#ec6a5e}.titlebar i:nth-child(2){background:#f4bf4f}.titlebar i:nth-child(3){background:#61c554}
+.titlebar b{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;font-weight:600;color:#c9c9cc;pointer-events:none}
+.tabs{display:flex;align-items:center;gap:8px;padding:8px 8px 6px}
+.tab{padding:6px 14px;background:#313b4a;border-radius:6px;font-size:13px;color:#dfe5ef}
+.tabs .plus{color:var(--soft);display:grid;place-items:center;width:24px;height:24px}
+.hdr{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 8px 8px}
+.dev{flex:0 1 190px;min-width:0;display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;background:var(--box);border-radius:8px;font-size:13px}
+.dev svg.ic{color:#9aa7b0}
+.dev span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dev .chev{width:10px;height:10px;color:var(--soft)}
+.fbox{flex:1 1 300px;min-width:0;display:flex;align-items:center;gap:8px;height:34px;padding:0 8px;background:var(--box);border-radius:8px;border:1px solid transparent}
+.fbox:focus-within{border-color:#5477b4}
+.fbox[data-bad="true"]{border-color:#e4665f}
+.fbox>svg.ic{color:var(--soft)}
+.ftext{position:relative;flex:1;min-width:0;height:100%}
+.ftext .mirror,.ftext input{position:absolute;inset:0;margin:0;padding:0;border:0;outline:0;background:transparent;font:500 13px/32px var(--mono);letter-spacing:0;white-space:pre;overflow:hidden}
+.ftext .mirror{pointer-events:none;color:var(--ink)}
+.ftext input{color:transparent;caret-color:#fff;width:100%}
+.ftext input::selection{background:rgba(84,119,180,.55);color:transparent}
+.mirror mark{background:rgba(106,135,89,.42);color:inherit;border-radius:3px;padding:2px 0}
+.scopechip{font-size:11px;background:#3a3f48;color:#aab3c2;padding:3px 7px;border-radius:5px;white-space:nowrap;max-width:112px;overflow:hidden;text-overflow:ellipsis}
+.mini{display:grid;place-items:center;width:24px;height:24px;border:0;border-radius:5px;background:transparent;color:#7f8b91;cursor:pointer;padding:0;flex:none}
+.mini:hover{background:#3a3f48;color:var(--ink)}
+.mini.inert{cursor:default}.mini.inert:hover{background:transparent;color:#7f8b91}
+.main{display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px;padding:0 8px 8px}
+.tools{display:flex;flex-direction:column;gap:4px;padding:4px;background:var(--col);border-radius:8px;align-self:stretch}
+.tb{width:28px;height:28px;display:grid;place-items:center;padding:0;border:0;border-radius:6px;background:var(--box);color:var(--soft);cursor:pointer}
+.tb:hover{background:#363a42}
+.tb[aria-pressed="true"]{background:#5477b4;color:#fff}
+.tb.inert{cursor:default}.tb.inert:hover{background:var(--box)}
+.tb.end{margin-top:auto}
+.log{margin:0;padding:4px 0;list-style:none;height:392px;overflow:auto;background:var(--list);border-radius:6px;font:12.5px/1.5 var(--mono);scrollbar-width:thin;scrollbar-color:#3a3f48 transparent}
+.row{display:grid;grid-template-columns:18px 88px 124px minmax(0,1fr);gap:10px;align-items:baseline;padding:1px 8px;cursor:default}
+.row.new{animation:in .25s ease-out both}
+@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.row:hover{background:#252d38}
+.row.bm{box-shadow:inset 2px 0 0 #5477b4;background:#1f2a3a}
+.b{display:inline-block;width:18px;text-align:center;border-radius:3px;font-weight:700;font-size:11px;line-height:17px;font-family:var(--mono)}
+.row .t,.row .a,.row .m{color:var(--c)}
+.row .a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .m{overflow-wrap:anywhere}
+.log.nowrap .row .m{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lv-V{--c:#bbbbbb}.lv-V .b{background:#d6d6d6;color:#000}
+.lv-D{--c:#299999}.lv-D .b{background:#305d78;color:#bbb}
+.lv-I{--c:#abc023}.lv-I .b{background:#6a8759;color:#e9f5e6}
+.lv-W{--c:#bbb529}.lv-W .b{background:#bbb529;color:#000}
+.lv-E{--c:#ff6b68}.lv-E .b{background:#cf5b56;color:#000}
+.empty{padding:26px 12px;color:#959fb0;font-family:var(--mono);font-size:13px}
+.toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);padding:7px 12px;border-radius:7px;background:#3a3f48;color:#fff;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+.try{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 2px 0}
+.try>span{color:var(--muted);font-size:14px;margin-right:2px}
 .chip{font-family:var(--mono);font-size:12.5px;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:5px 11px;cursor:pointer}
 .chip:hover,.chip[aria-pressed="true"]{color:var(--text);border-color:var(--accent)}
-.log{margin:0;padding:6px 0 8px;list-style:none;height:372px;overflow:auto;font-family:var(--mono);font-size:12.5px;line-height:1.35;border-top:1px solid var(--line)}
-.row{display:grid;grid-template-columns:22px 92px 112px minmax(0,1fr);gap:10px;align-items:baseline;padding:3px 14px;animation:in .22s ease-out both}
-@keyframes in{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
-.lv{display:inline-block;width:18px;text-align:center;border-radius:3px;font-weight:700;font-size:11px;color:#0e1512}
-.lv-V{background:var(--lv-V)}.lv-D{background:var(--lv-D)}.lv-I{background:var(--lv-I)}.lv-W{background:var(--lv-W)}.lv-E{background:var(--lv-E)}
-.row .t{color:var(--muted)}
-.row .g{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row .m{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row.lvl-E .m{color:var(--lv-E)}.row.lvl-W .m{color:var(--lv-W)}
-.empty{padding:28px 14px;color:var(--muted);font-family:var(--mono);font-size:13px}
-.win-foot{display:flex;justify-content:space-between;gap:12px;padding:9px 14px;border-top:1px solid var(--line);background:var(--panel-2);font-family:var(--mono);font-size:12px;color:var(--muted)}
-@media (max-width:560px){.row{grid-template-columns:22px 1fr}.row .t,.row .g{display:none}.row .m{white-space:normal}}
-.demo-note{margin:14px 4px 0;color:var(--muted);font-size:14px}
+.demo-note{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:12px 4px 0;color:var(--muted);font-size:14px}
+.demo-note .mono{white-space:nowrap}
+@media (max-width:560px){
+  .row{grid-template-columns:18px minmax(0,1fr)}.row .t,.row .a{display:none}
+  .log{height:320px}.dev{flex-basis:100%}.fbox{flex-basis:100%}
+}
 
 /* sections */
 section{padding:64px 0}
 .eyebrow{font-family:var(--mono);font-size:13px;color:var(--accent);margin:0 0 12px;letter-spacing:.02em}
 h2{font-size:clamp(28px,3.4vw,42px);line-height:1.1;letter-spacing:-.025em;margin:0 0 16px;font-weight:700}
 .sub{color:var(--muted);max-width:40em;margin:0 0 36px}
-.shot{margin:0}
-.shot img{display:block;width:100%;height:auto;border-radius:14px;border:1px solid var(--line);box-shadow:var(--shadow)}
-.shot figcaption{margin-top:14px;color:var(--muted);font-size:15px}
 
 .ref{width:100%;border-collapse:collapse;font-size:17px}
 .ref th,.ref td{text-align:left;vertical-align:top;padding:14px 0;border-top:1px solid var(--line)}
@@ -146,6 +182,7 @@ footer a{color:var(--text)}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-clear" viewBox="0 0 16 16"><path fill="currentColor" d="M3,1 L3,0 L7,0 L7,1 L10,1 L10,3 L0,3 L0,1 L3,1 Z M1,11.7142858 L1,4 L9,4 L9,11.7142858 C9,12.4214286 8.4,13 7.6666667,13 L2.33333333,13 C1.6,13 1,12.4214286 1,11.7142858 Z" transform="translate(3 1)"/></symbol><symbol id="i-pause" viewBox="0 0 16 16"><g fill="currentColor" fill-rule="evenodd" transform="translate(4 2)"> <rect width="3" height="11"/> <rect width="3" height="11" x="5"/> </g></symbol><symbol id="i-refresh" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M12.5747152,11.8852806 C11.4741474,13.1817355 9.83247882,14.0044386 7.99865879,14.0044386 C5.03907292,14.0044386 2.57997332,11.8615894 2.08820756,9.0427473 L3.94774327,9.10768372 C4.43372186,10.8898575 6.06393114,12.2000519 8.00015362,12.2000519 C9.30149237,12.2000519 10.4645985,11.6082097 11.2349873,10.6790094 L9.05000019,8.71167959 L14.0431479,8.44999981 L14.3048222,13.4430431 L12.5747152,11.8852806 Z M3.42785637,4.11741586 C4.52839138,2.82452748 6.16775464,2.00443857 7.99865879,2.00443857 C10.918604,2.00443857 13.3513802,4.09026967 13.8882946,6.8532307 L12.0226389,6.78808057 C11.5024872,5.05935553 9.89838095,3.8000774 8.00015362,3.8000774 C6.69867367,3.8000774 5.53545628,4.39204806 4.76506921,5.32142241 L6.95482203,7.29304326 L1.96167436,7.55472304 L1.70000005,2.56167973 L3.42785637,4.11741586 Z" transform="rotate(3 8.002 8.004)"/></symbol><symbol id="i-follow-tail" viewBox="0 0 16 16"><g fill="none" fill-rule="evenodd"> <polygon fill="currentColor" points="12 6 15 6 11 10 7 6 10 6 10 1 12 1" transform="matrix(-1 0 0 1 22 0)"/> <rect width="12" height="2" x="2" y="11" fill="currentColor"/> <rect width="4" height="2" x="2" y="7" fill="currentColor"/> <rect width="4" height="2" x="2" y="3" fill="currentColor"/> </g></symbol><symbol id="i-occurrence-prev" viewBox="0 0 16 16"><g fill="currentColor" fill-rule="evenodd" transform="rotate(90 5.5 7.5)"> <rect width="11" height="2" x="1" y="4"/> <g transform="translate(0 .02)"> <rect width="7" height="1.8" x="-.389" y="2.24" transform="rotate(-45 3.111 3.14)"/> <rect width="1.8" height="7" x="2.211" y="3.317" transform="rotate(-45 3.111 6.817)"/> </g> </g></symbol><symbol id="i-occurrence-next" viewBox="0 0 16 16"><g fill="currentColor" fill-rule="evenodd" transform="matrix(0 -1 -1 0 13 14)"> <rect width="11" height="2" x="1" y="4"/> <g transform="translate(0 .02)"> <rect width="7" height="1.8" x="-.389" y="2.24" transform="rotate(-45 3.111 3.14)"/> <rect width="1.8" height="7" x="2.211" y="3.317" transform="rotate(-45 3.111 6.817)"/> </g> </g></symbol><symbol id="i-bookmark" viewBox="0 0 16 16"><path fill="currentColor" d="M4,2 L12,2 L12,14 L8,10.8 L4,14 Z"/></symbol><symbol id="i-bug-report" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M5.5,1 L10.5,1 L10.5,2 L12,2 L12,14 L4,14 L4,2 L5.5,2 Z M5,3 L5,13 L11,13 L11,3 L10.5,3 L5.5,3 Z M6,5 L10,5 L10,6 L6,6 Z M6,7.5 L10,7.5 L10,8.5 L6,8.5 Z M6,10 L9,10 L9,11 L6,11 Z"/></symbol><symbol id="i-crash" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M8,1.5 L15,14 L1,14 Z M7.3,6 L7.3,10 L8.7,10 L8.7,6 Z M7.3,11 L7.3,12.4 L8.7,12.4 L8.7,11 Z"/></symbol><symbol id="i-wrap-text" viewBox="0 0 16 16"><g fill="currentColor" fill-rule="evenodd"><path d="M1 12h4v2H1zM9 12h3v2H9zM1 7h11v2H1zM1 2h14v2H1z"/><path d="M10 10.5v5L7 13z"/><path d="M12 7h.5a3.5 3.5 0 0 1 0 7H12v-2h.5a1.5 1.5 0 0 0 0-3H12V7z" fill-rule="nonzero"/></g></symbol><symbol id="i-device-physical" viewBox="0 0 16 16"><path d="M11 2H5c-.5 0-1 .5-1 1v10c0 .5.5 1 1 1h6c.5 0 1-.5 1-1V3c0-.5-.5-1-1-1zm0 10H5V4h6v8z" fill="currentColor" fill-rule="evenodd"/></symbol><symbol id="i-configure-view" viewBox="0 0 16 16"><g fill="none" fill-rule="evenodd"> <circle cx="10.75" cy="3.55" r="1.75" fill="currentColor"/> <circle cx="8.75" cy="13.55" r="1.75" fill="currentColor"/> <rect width="12" height="1" x="2" y="3" fill="currentColor"/> <circle cx="5.75" cy="8.55" r="1.75" fill="currentColor"/> <rect width="12" height="1" x="2" y="8" fill="currentColor"/> <rect width="12" height="1" x="2" y="13" fill="currentColor"/> </g></symbol><symbol id="i-filter" viewBox="0 0 16 16"><path d="M2.187 3.245l4.305 5.497v4.508c0 .412.338.75.758.75h1.507a.759.759 0 0 0 .758-.75V8.735s4.117-5.265 4.312-5.505c.195-.24.172-.48.172-.48a.754.754 0 0 0-.757-.75H2.757A.744.744 0 0 0 2 2.75c0 .15.045.33.187.495z" fill="currentColor" fill-rule="nonzero"/></symbol><symbol id="i-favorite-outline" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 2.073a.5.5 0 01.462.308l1.47 3.534 3.814.305a.5.5 0 01.285.879l-2.906 2.49.888 3.722a.5.5 0 01-.747.543L8 11.859l-3.266 1.995a.5.5 0 01-.747-.543l.888-3.723-2.907-2.49a.5.5 0 01.286-.878l3.814-.305 1.47-3.534A.5.5 0 018 2.073zm0 1.802L6.875 6.58a.5.5 0 01-.422.306l-2.921.234 2.225 1.907a.5.5 0 01.161.495l-.68 2.85 2.501-1.527a.5.5 0 01.522 0l2.5 1.528-.68-2.85a.5.5 0 01.162-.496l2.225-1.907-2.921-.234a.5.5 0 01-.422-.306L8 3.875z" fill="currentColor"/></symbol><symbol id="i-close" viewBox="0 0 16 16"><path fill="currentColor" fill-opacity=".5" fill-rule="evenodd" d="M7.99494337,8.70506958 L4.85408745,11.8540874 L4.14698067,11.1469807 L7.29493214,8.00505835 L4.14698067,4.85710688 L4.85408745,4.1500001 L8.00204181,7.29795446 L11.1439612,4.1500001 L11.851068,4.85710688 L8.70204624,7.99795888 L11.851068,11.1469807 L11.1439612,11.8540874 L7.99494337,8.70506958 Z"/></symbol><symbol id="i-help" viewBox="0 0 16 16"><g fill="none" fill-rule="evenodd" transform="translate(1 1)"> <path fill="currentColor" fill-opacity=".8" d="M7,14 C3.13400675,14 0,10.8659932 0,7 C0,3.13400675 3.13400675,0 7,0 C10.8659932,0 14,3.13400675 14,7 C14,10.8659932 10.8659932,14 7,14 Z M7,13 C10.3137085,13 13,10.3137085 13,7 C13,3.6862915 10.3137085,1 7,1 C3.6862915,1 1,3.6862915 1,7 C1,10.3137085 3.6862915,13 7,13 Z"/> <path fill="currentColor" fill-opacity=".9" d="M6.5,11 L7.83333333,11 L7.83333333,9.66666667 L6.5,9.66666667 L6.5,11 Z M7.16666667,3 C5.69333333,3 4.5,4.19333333 4.5,5.66666667 L5.83333333,5.66666667 C5.83333333,4.93333333 6.43333333,4.33333333 7.16666667,4.33333333 C7.9,4.33333333 8.5,4.93333333 8.5,5.66666667 C8.5,7 6.5,6.83333333 6.5,9 L7.83333333,9 C7.83333333,7.5 9.83333333,7.33333333 9.83333333,5.66666667 C9.83333333,4.19333333 8.64,3 7.16666667,3 Z"/> </g></symbol><symbol id="i-plus" viewBox="0 0 16 16"><g fill="none" fill-rule="evenodd"> <rect width="2" height="10" x="7" y="3" fill="currentColor"/> <rect width="2" height="10" x="7" y="3" fill="currentColor" transform="rotate(90 8 8)"/> </g></symbol></defs></svg>
 <div class="wrap">
   <header class="top">
     <a class="brand" href="#top" aria-label="LogCat by cactus">
@@ -184,33 +221,45 @@ footer a{color:var(--text)}
       </div>
 
       <div>
-        <div class="win" role="group" aria-label="Demo">
-          <div class="win-bar"><i></i><i></i><i></i><span>LogCat by cactus — demo</span></div>
-          <label class="query" id="qbox">
-            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1 2h14l-5.4 6.2V14l-3.2-1.8V8.2z"/></svg>
-            <input id="q" type="text" value="package:mine level:warn" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Filter">
-            <span class="scope" id="scope"></span>
-          </label>
-          <div class="chips" id="chips"></div>
-          <ol class="log" id="log" aria-live="polite"></ol>
-          <div class="win-foot"><span id="count"></span><span>com.example.shop · Pixel 8</span></div>
+        <div class="app" role="group" aria-label="Demo: LogCat by cactus">
+          <div class="titlebar"><i></i><i></i><i></i><b>LogCat by cactus</b></div>
+          <div class="tabs"><span class="tab">Logcat</span><span class="plus"><svg class="ic"><use href="#i-plus"/></svg></span></div>
+          <div class="hdr">
+            <div class="dev"><svg class="ic"><use href="#i-device-physical"/></svg><span>Pixel_8 (37a1c0e2) Android 15, API 35</span><svg class="chev" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1.5 3.2 5 6.8l3.5-3.6"/></svg></div>
+            <div class="fbox" id="fbox">
+              <svg class="ic"><use href="#i-filter"/></svg>
+              <div class="ftext"><div class="mirror" id="mirror" aria-hidden="true"></div><input id="q" type="text" value="package:mine level:warn" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Filter"></div>
+              <span class="scopechip" id="scope" hidden></span>
+              <button class="mini" id="qclear" type="button" aria-label="Clear filter"><svg class="ic"><use href="#i-close"/></svg></button>
+              <a class="mini" href="#filter" aria-label="Filter help"><svg class="ic"><use href="#i-help"/></svg></a>
+            </div>
+          </div>
+          <div class="main">
+            <div class="tools" role="toolbar" aria-label="Logcat tools">
+              <button class="tb" id="b-clear" type="button" title="Clear Logcat" aria-label="Clear Logcat"><svg class="ic"><use href="#i-clear"/></svg></button>
+              <button class="tb" id="b-pause" type="button" title="Pause" aria-label="Pause" aria-pressed="false"><svg class="ic"><use href="#i-pause"/></svg></button>
+              <button class="tb" id="b-restart" type="button" title="Restart" aria-label="Restart"><svg class="ic"><use href="#i-refresh"/></svg></button>
+              <button class="tb" id="b-follow" type="button" title="Scroll to the end" aria-label="Scroll to the end" aria-pressed="true"><svg class="ic"><use href="#i-follow-tail"/></svg></button>
+              <button class="tb" id="b-prev" type="button" title="Previous crash" aria-label="Previous crash"><svg class="ic"><use href="#i-occurrence-prev"/></svg></button>
+              <button class="tb" id="b-next" type="button" title="Next crash" aria-label="Next crash"><svg class="ic"><use href="#i-occurrence-next"/></svg></button>
+              <button class="tb" id="b-bm" type="button" title="Show bookmarks only (click a row to bookmark it)" aria-label="Show bookmarks only" aria-pressed="false"><svg class="ic"><use href="#i-bookmark"/></svg></button>
+              <button class="tb" id="b-bug" type="button" title="Copy bug report" aria-label="Copy bug report"><svg class="ic"><use href="#i-bug-report"/></svg></button>
+              <button class="tb" id="b-crash" type="button" title="Show crashes" aria-label="Show crashes"><svg class="ic"><use href="#i-crash"/></svg></button>
+              <button class="tb" id="b-wrap" type="button" title="Soft-wrap" aria-label="Soft-wrap" aria-pressed="true"><svg class="ic"><use href="#i-wrap-text"/></svg></button>
+              <span class="tb inert" title="Device actions"><svg class="ic"><use href="#i-device-physical"/></svg></span>
+              <span class="tb inert end" title="Configure view"><svg class="ic"><use href="#i-configure-view"/></svg></span>
+            </div>
+            <ol class="log" id="log" aria-live="off" tabindex="0" aria-label="Log"></ol>
+          </div>
+          <div class="toast" id="toast" role="status"></div>
         </div>
+        <div class="try" id="chips"><span lang="ru">Попробуйте:</span><span lang="en">Try:</span></div>
         <p class="demo-note">
-          <span lang="ru">Это живой фильтр на выдуманных логах — он работает прямо в браузере и понимает основные ключи приложения.</span>
-          <span lang="en">This is a live filter over made-up logs. It runs in your browser and understands the app's main keys.</span>
+          <span><span lang="ru">Живой поток выдуманных логов: фильтр, пауза и кнопки слева работают прямо в браузере. Клик по строке ставит закладку.</span><span lang="en">A live stream of made-up logs: the filter, pause and the buttons on the left work right in your browser. Click a row to bookmark it.</span></span>
+          <span class="mono" id="count"></span>
         </p>
       </div>
     </div>
-
-    <section id="look" style="padding-top:8px">
-      <figure class="shot">
-        <img src="screenshot.png" width="1600" height="1003" alt="Окно LogCat by cactus: вкладка Logcat, выбранный телефон, фильтр package:mine, список строк с цветными значками уровней и боковая панель инструментов">
-        <figcaption>
-          <span lang="ru">Привычный вид Logcat из Android Studio, но отдельным окном: устройство, фильтр, значки уровней и боковая панель с очисткой, паузой, закладками и баг-репортом.</span>
-          <span lang="en">The familiar Android Studio Logcat look in its own window: device picker, filter, level badges and a side toolbar for clear, pause, bookmarks and bug reports.</span>
-        </figcaption>
-      </figure>
-    </section>
 
     <section id="filter">
       <p class="eyebrow">filter</p>
@@ -332,50 +381,66 @@ footer a{color:var(--text)}
   setLang(saved||((navigator.language||'ru').toLowerCase().indexOf('ru')===0?'ru':'en'));
   btn.addEventListener('click',function(){setLang(html.getAttribute('data-lang')==='ru'?'en':'ru')});
 
-  /* демо: выдуманные логи (age — сколько секунд назад) */
-  var MINE='com.example.shop';
-  var D=[
-   [600,'D','SystemUI','com.android.systemui','StatusBar: updateStates notificationCount=3'],
-   [560,'I','ShopApp',MINE,'App started, build 2.14.0 (214)'],
-   [545,'D','ShopApp',MINE,'Restoring session for user 41'],
-   [520,'I','system_server','system_server','Start proc 4821:com.example.shop/u0a213 for activity MainActivity'],
-   [470,'D','Network',MINE,'GET /api/v2/catalog?page=1 -> 200 (118 ms)'],
-   [430,'V','ImageLoader',MINE,'cache hit: banner_summer.webp'],
-   [380,'W','Network',MINE,'GET /api/v2/prices timeout after 5000 ms, retry 1/3'],
-   [376,'I','Network',MINE,'GET /api/v2/prices -> 200 (212 ms) after retry'],
-   [330,'D','WifiService','system_server','scan results: 14 networks'],
-   [290,'I','Cart',MINE,'cart updated: items=3 total=4290.00'],
-   [250,'W','Payments',MINE,'card token expires in 2 days, asking user to refresh'],
-   [200,'D','SystemUI','com.android.systemui','Keyguard: show=false occluded=false'],
-   [150,'E','Network',MINE,'POST /api/v2/orders failed: java.net.SocketTimeoutException'],
-   [147,'W','Network',MINE,'POST /api/v2/orders retry 1/3 in 2000 ms'],
-   [120,'I','Cart',MINE,'cart cleared by user'],
-   [95,'D','ShopApp',MINE,'Navigating to ProductDetails id=88231'],
-   [70,'W','ImageLoader',MINE,'decode took 340 ms for product_88231_hero.jpg'],
-   [58,'D','ActivityManager','system_server','Displayed com.example.shop/.ui.ProductActivity: +310ms'],
-   [31,'I','Analytics',MINE,'event=product_view id=88231 source=catalog'],
-   [22,'E','AndroidRuntime',MINE,'FATAL EXCEPTION: main  Process: com.example.shop, PID: 4821',true],
-   [22,'E','AndroidRuntime',MINE,'java.lang.NullPointerException: Attempt to invoke virtual method \'java.lang.String Price.format()\' on a null object reference',true],
-   [22,'E','AndroidRuntime',MINE,'\tat com.example.shop.ui.ProductActivity.bindPrice(ProductActivity.kt:142)',true],
-   [21,'I','ActivityManager','system_server','Process com.example.shop (pid 4821) has died: fg TOP'],
-   [9,'D','SystemUI','com.android.systemui','StatusBar: updateStates notificationCount=3']
-  ];
+  /* демо: живой поток выдуманных логов */
+  var MINE='com.example.shop',CAP=400,SHOWN=220;
   var LV={V:0,D:1,I:2,W:3,E:4,A:5};
   var LVN={verbose:0,v:0,debug:1,d:1,info:2,i:2,warn:3,warning:3,w:3,error:4,e:4,assert:5,a:5};
-  var now='14:20:';
-  function stamp(age){var s=1200-age,m=Math.floor(s/60),ss=s%60;return '14:'+(m<10?'0':'')+m+':'+(ss<10?'0':'')+ss+'.'+(100+age*7%900)}
-  var rows=D.map(function(r){return{age:r[0],lv:r[1],tag:r[2],pkg:r[3],msg:r[4],crash:!!r[5],t:stamp(r[0])}});
+  function R(a,b){return a+Math.floor(Math.random()*(b-a+1))}
+  function pick(a){return a[R(0,a.length-1)]}
+  function pad(n,l){n=String(n);while(n.length<(l||2))n='0'+n;return n}
+  function stamp(ts){var d=new Date(ts);return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())+'.'+pad(d.getMilliseconds(),3)}
+  var PROD=function(){return R(80000,89999)};
+  var GEN=[
+    function(){return['D','Network',MINE,'GET /api/v2/catalog?page='+R(1,6)+' -> 200 ('+R(60,240)+' ms)']},
+    function(){return['D','Network',MINE,'GET /api/v2/products/'+PROD()+' -> 200 ('+R(40,180)+' ms)']},
+    function(){return['I','Cart',MINE,'cart updated: items='+R(1,6)+' total='+(R(900,9900)).toFixed(2)]},
+    function(){return['V','ImageLoader',MINE,'cache hit: '+pick(['banner_summer.webp','product_88231_hero.jpg','avatar_41.png','promo_autumn.webp'])]},
+    function(){return['W','Network',MINE,'GET /api/v2/prices timeout after 5000 ms, retry '+R(1,3)+'/3']},
+    function(){return['W','ImageLoader',MINE,'decode took '+R(280,520)+' ms for '+pick(['product_88231_hero.jpg','banner_summer.webp'])]},
+    function(){return['W','Choreographer',MINE,'Skipped '+R(2,9)+' frames! The application may be doing too much work on its main thread.']},
+    function(){return['I','Analytics',MINE,'event='+pick(['product_view','add_to_cart','search','checkout_start'])+' id='+PROD()+' source='+pick(['catalog','search','push'])]},
+    function(){return['I','ShopApp',MINE,'Navigating to '+pick(['ProductDetails','Cart','Catalog','Profile'])+' id='+PROD()]},
+    function(){return['E','Network',MINE,'POST /api/v2/orders failed: java.net.SocketTimeoutException']},
+    function(){return['D','SystemUI','com.android.systemui','StatusBar: updateStates notificationCount='+R(0,5)]},
+    function(){return['D','WifiService','system_server','scan results: '+R(8,19)+' networks']},
+    function(){return['I','ActivityManager','system_server','Displayed com.example.shop/.ui.ProductActivity: +'+R(180,420)+'ms']},
+    function(){return['D','Keyguard','com.android.systemui','show=false occluded=false']},
+    function(){return['V','BatteryStats','system_server','level='+R(30,99)+' temp='+R(280,360)+' status=discharging']}
+  ];
+  var buf=[],sinceCrash=0,nextCrash=R(26,38),follow=true,paused=false,wrapOn=true,bmOnly=false,uid=0;
+  function add(e,ts){e.ts=ts||Date.now();e.id=++uid;e.crash=!!e.crash;buf.push(e);if(buf.length>CAP)buf.shift();return e}
+  function mk(a){return{lv:a[0],tag:a[1],pkg:a[2],msg:a[3]}}
+  function emit(){
+    var out=[];
+    if(++sinceCrash>=nextCrash){
+      sinceCrash=0;nextCrash=R(28,44);var pid=R(4000,9000);
+      out.push({lv:'E',tag:'AndroidRuntime',pkg:MINE,msg:'FATAL EXCEPTION: main  Process: com.example.shop, PID: '+pid,crash:true});
+      out.push({lv:'E',tag:'AndroidRuntime',pkg:MINE,msg:"java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.String Price.format()' on a null object reference",crash:true});
+      out.push({lv:'E',tag:'AndroidRuntime',pkg:MINE,msg:'\tat com.example.shop.ui.ProductActivity.bindPrice(ProductActivity.kt:142)',crash:true});
+      out.push({lv:'E',tag:'AndroidRuntime',pkg:MINE,msg:'\tat com.example.shop.ui.ProductActivity.onCreate(ProductActivity.kt:57)',crash:true});
+      out.push({lv:'I',tag:'ActivityManager',pkg:'system_server',msg:'Process com.example.shop (pid '+pid+') has died: fg TOP'});
+    } else out.push(mk(pick(GEN)()));
+    out.forEach(function(e){e=add(e);if(matches(e))appendRow(e,true)});
+    trimDom();updateCount();
+  }
+  (function seed(){var t0=Date.now(),t=t0-26000;while(t<t0-400){add(mk(pick(GEN)()),t);t+=R(500,1500)}})();
 
+  /* фильтр */
   var TERM=/(-?)([a-z]+)(~|=)?:("[^"]*"|\S*)|(-?)("[^"]*"|\S+)/gi;
+  var KEYS={tag:1,message:1,line:1,package:1,process:1,app:1,name:1,level:1,age:1,is:1};
   function parse(q){var out=[],m;TERM.lastIndex=0;while((m=TERM.exec(q))){
-    if(m[2]){out.push({neg:m[1]==='-',key:m[2].toLowerCase(),op:m[3]||'',val:m[4].replace(/^"|"$/g,'')})}
-    else if(m[6]){out.push({neg:m[5]==='-',key:'',op:'',val:m[6].replace(/^"|"$/g,'')})}}
+    if(m[2]){out.push({neg:m[1]==='-',key:m[2].toLowerCase(),op:m[3]||'',val:m[4].replace(/^"|"$/g,''),i:m.index,len:m[0].length})}
+    else if(m[6]){out.push({neg:m[5]==='-',key:'',op:'',val:m[6].replace(/^"|"$/g,''),i:m.index,len:m[0].length})}
+    if(m[0]==='')TERM.lastIndex++}
     return out}
-  function textMatch(hay,t){
-    var v=t.val;
-    if(t.op==='~'){return new RegExp(v,'i').test(hay)}
-    if(t.op==='='){return hay.toLowerCase()===v.toLowerCase()}
-    return hay.toLowerCase().indexOf(v.toLowerCase())>=0}
+  var $=function(id){return document.getElementById(id)};
+  var q=$('q'),log=$('log'),count=$('count'),fbox=$('fbox'),scope=$('scope'),chipsEl=$('chips'),mirror=$('mirror'),rx={checked:true},cc={checked:false};
+  var terms=[],bad=false;
+  function textMatch(hay,t,regexDefault){
+    var v=t.val,ci=!cc.checked;
+    if(t.op==='~'||(regexDefault&&t.op==='')){return new RegExp(v,ci?'i':'').test(hay)}
+    if(t.op==='='){return ci?hay.toLowerCase()===v.toLowerCase():hay===v}
+    return ci?hay.toLowerCase().indexOf(v.toLowerCase())>=0:hay.indexOf(v)>=0}
   function test(r,t){
     var k=t.key,res;
     if(k==='tag')res=textMatch(r.tag,t);
@@ -383,29 +448,99 @@ footer a{color:var(--text)}
     else if(k==='line')res=textMatch(r.tag+' '+r.msg,t);
     else if(k==='package'||k==='process'||k==='app'||k==='name'){res=(t.val==='mine'&&t.op==='')?r.pkg===MINE:textMatch(r.pkg,t)}
     else if(k==='level'){var n=LVN[t.val.toLowerCase()];res=n===undefined?true:LV[r.lv]>=n}
-    else if(k==='age'){var m=/^(\d+)([smhd])$/i.exec(t.val);if(!m)res=true;else{var mul={s:1,m:60,h:3600,d:86400}[m[2].toLowerCase()];res=r.age<=parseInt(m[1],10)*mul}}
-    else if(k==='is'){res=t.val.toLowerCase()==='crash'?r.crash||/ANR/.test(r.msg):true}
-    else if(k===''){res=(r.tag+' '+r.pkg+' '+r.msg).toLowerCase().indexOf(t.val.toLowerCase())>=0}
+    else if(k==='age'){var m=/^(\d+)([smhd])$/i.exec(t.val);if(!m)res=true;else{var mul={s:1,m:60,h:3600,d:86400}[m[2].toLowerCase()];res=(Date.now()-r.ts)/1000<=parseInt(m[1],10)*mul}}
+    else if(k==='is'){res=t.val.toLowerCase()==='crash'?r.crash:true}
+    else if(k===''){res=textMatch(r.tag+' '+r.pkg+' '+r.msg,t,rx.checked)}
     else res=true;
     return t.neg?!res:res}
-
-  var q=document.getElementById('q'),log=document.getElementById('log'),count=document.getElementById('count'),box=document.getElementById('qbox'),scope=document.getElementById('scope'),chipsEl=document.getElementById('chips');
-  var PRESETS=['package:mine level:warn','is:crash','tag~:Net.* -message:retry','age:60s package:mine','message:"cart"'];
+  function matches(e){
+    if(bmOnly&&!e.bm)return false;
+    try{for(var i=0;i<terms.length;i++)if(!test(e,terms[i]))return false;return true}catch(x){bad=true;return true}}
   function esc(s){return s.replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+
+  function rowHtml(e){return '<span class="b">'+e.lv+'</span><span class="t">'+stamp(e.ts)+'</span><span class="a">'+esc(e.pkg)+'</span><span class="m">'+esc(e.tag)+' '+esc(e.msg.replace(/^\t/,'    '))+'</span>'}
+  function appendRow(e,fresh){
+    var li=document.createElement('li');li.className='row lv-'+e.lv+(fresh&&!reduce?' new':'')+(e.bm?' bm':'');li.dataset.id=e.id;if(e.crash)li.dataset.crash='1';
+    li.innerHTML=rowHtml(e);
+    var em=log.querySelector('.empty');if(em)em.remove();
+    log.appendChild(li);if(follow)stick()}
+  function trimDom(){while(log.children.length>SHOWN)log.removeChild(log.firstChild)}
+  var progScroll=false;
+  function stick(){progScroll=true;log.scrollTop=log.scrollHeight;requestAnimationFrame(function(){progScroll=false})}
   function render(){
-    var terms=parse(q.value),bad=false,list=[];
-    try{list=rows.filter(function(r){return terms.every(function(t){return test(r,t)})})}catch(e){bad=true;list=rows}
-    box.setAttribute('data-bad',bad?'true':'false');
-    scope.textContent=terms.some(function(t){return t.key==='package'&&t.val==='mine'&&!t.neg})?'mine: '+MINE:'';
-    if(!list.length){log.innerHTML='<li class="empty">'+(html.lang==='ru'?'Ничего не найдено. Ослабьте условие или уберите «-».':'Nothing found. Loosen a term or drop a “-”.')+'</li>'}
-    else log.innerHTML=list.map(function(r,i){return '<li class="row lvl-'+r.lv+'" style="animation-delay:'+Math.min(i*8,120)+'ms"><span class="lv lv-'+r.lv+'">'+r.lv+'</span><span class="t">'+r.t+'</span><span class="g">'+esc(r.tag)+'</span><span class="m">'+esc(r.msg)+'</span></li>'}).join('');
-    log.scrollTop=log.scrollHeight;
-    count.textContent=(html.lang==='ru'?'Показано ':'Showing ')+list.length+(html.lang==='ru'?' из ':' of ')+rows.length;
-    [].forEach.call(chipsEl.children,function(c){c.setAttribute('aria-pressed',c.textContent===q.value?'true':'false')})}
-  PRESETS.forEach(function(p){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=p;b.addEventListener('click',function(){q.value=p;render()});chipsEl.appendChild(b)});
-  q.addEventListener('input',render);
-  new MutationObserver(render).observe(html,{attributes:true,attributeFilter:['data-lang']});
-  render();
+    bad=false;terms=parse(q.value);
+    var list=buf.filter(matches);
+    fbox.setAttribute('data-bad',bad?'true':'false');
+    var mine=terms.some(function(t){return t.key==='package'&&t.val==='mine'&&!t.neg});
+    scope.hidden=!mine;scope.textContent='mine: '+MINE;
+    drawMirror();
+    if(!list.length)log.innerHTML='<li class="empty">'+(html.lang==='ru'?'Ничего не найдено. Ослабьте условие или уберите «-».':'Nothing found. Loosen a term or drop a “-”.')+'</li>';
+    else{log.innerHTML='';list.slice(-SHOWN).forEach(function(e){appendRow(e,false)})}
+    if(follow)stick();
+    updateCount();
+    [].forEach.call(chipsEl.querySelectorAll('.chip'),function(c){c.setAttribute('aria-pressed',c.textContent===q.value?'true':'false')})}
+  function drawMirror(){
+    var s=q.value,out='',pos=0;
+    parse(s).forEach(function(t){
+      out+=esc(s.slice(pos,t.i));
+      var seg=esc(s.slice(t.i,t.i+t.len));
+      out+=(t.key&&KEYS[t.key]&&t.val!=='')?'<mark>'+seg+'</mark>':seg;pos=t.i+t.len});
+    mirror.innerHTML=out+esc(s.slice(pos));mirror.scrollLeft=q.scrollLeft}
+  function updateCount(){
+    var n=0;for(var i=0;i<buf.length;i++)if(matches(buf[i]))n++;
+    count.textContent=(html.lang==='ru'?'Показано ':'Showing ')+n+(html.lang==='ru'?' из ':' of ')+buf.length}
+
+  /* чипы с примерами */
+  ['package:mine level:warn','is:crash','tag~:Net.* -message:retry','age:20s package:mine','message:"cart"'].forEach(function(p){
+    var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=p;
+    b.addEventListener('click',function(){q.value=p;render()});chipsEl.appendChild(b)});
+  q.addEventListener('input',render);q.addEventListener('scroll',function(){mirror.scrollLeft=q.scrollLeft});
+  $('qclear').addEventListener('click',function(){q.value='';render();q.focus()});
+
+  /* панель инструментов */
+  function press(id,on){$(id).setAttribute('aria-pressed',on?'true':'false')}
+  var toastT;function toast(s){var el=$('toast');el.textContent=s;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){el.classList.remove('on')},1800)}
+  $('b-clear').addEventListener('click',function(){buf.length=0;render()});
+  $('b-pause').addEventListener('click',function(){paused=!paused;press('b-pause',paused)});
+  $('b-restart').addEventListener('click',function(){buf.length=0;paused=false;press('b-pause',false);follow=true;press('b-follow',true);render();toast(html.lang==='ru'?'Поток перезапущен':'Log stream restarted')});
+  $('b-follow').addEventListener('click',function(){follow=!follow;press('b-follow',follow);if(follow)stick()});
+  log.addEventListener('scroll',function(){
+    if(progScroll)return;
+    var atEnd=log.scrollHeight-log.scrollTop-log.clientHeight<10;
+    if(atEnd!==follow){follow=atEnd;press('b-follow',follow)}});
+  function jump(dir){
+    var rowsC=[].slice.call(log.querySelectorAll('li[data-crash="1"]'));
+    if(!rowsC.length){toast(html.lang==='ru'?'Крашей нет':'No crashes');return}
+    var top=log.scrollTop,tgt=null;
+    if(dir<0){for(var i=rowsC.length-1;i>=0;i--)if(rowsC[i].offsetTop<top-4){tgt=rowsC[i];break}}
+    else{for(var j=0;j<rowsC.length;j++)if(rowsC[j].offsetTop>top+4){tgt=rowsC[j];break}}
+    if(!tgt)tgt=dir<0?rowsC[rowsC.length-1]:rowsC[0];
+    follow=false;press('b-follow',false);progScroll=true;log.scrollTop=tgt.offsetTop-4;requestAnimationFrame(function(){progScroll=false})}
+  $('b-prev').addEventListener('click',function(){jump(-1)});
+  $('b-next').addEventListener('click',function(){jump(1)});
+  $('b-bm').addEventListener('click',function(){bmOnly=!bmOnly;press('b-bm',bmOnly);render()});
+  log.addEventListener('click',function(ev){
+    var li=ev.target.closest('li.row');if(!li)return;
+    var id=+li.dataset.id,e=buf.filter(function(x){return x.id===id})[0];if(!e)return;
+    e.bm=!e.bm;li.classList.toggle('bm',!!e.bm);if(bmOnly&&!e.bm)render()});
+  $('b-bug').addEventListener('click',function(){
+    var lines=buf.filter(matches).slice(-20).map(function(e){return stamp(e.ts)+' '+e.lv+' '+e.tag+': '+e.msg.replace(/^\t/,'    ')});
+    var md='## Bug report\n\n- Device: Pixel_8 (Android 15, API 35)\n- App: com.example.shop 2.14.0\n- Filter: `'+q.value+'`\n\n```\n'+lines.join('\n')+'\n```\n';
+    var done=function(){toast(html.lang==='ru'?'Баг-репорт скопирован':'Bug report copied')};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(md).then(done,function(){toast('Clipboard is blocked')});else done()});
+  $('b-crash').addEventListener('click',function(){q.value='is:crash';render()});
+  $('b-wrap').addEventListener('click',function(){wrapOn=!wrapOn;press('b-wrap',wrapOn);log.classList.toggle('nowrap',!wrapOn)});
+
+  /* поток: пауза вне экрана и во вкладке в фоне, без анимации при reduced-motion */
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var onScreen=true,hidden=document.hidden,timer=null;
+  function loop(){clearTimeout(timer);timer=setTimeout(function(){if(!paused&&onScreen&&!hidden&&!reduce)emit();loop()},R(380,1100))}
+  if('IntersectionObserver' in window)new IntersectionObserver(function(es){onScreen=es[0].isIntersecting},{threshold:.05}).observe($('log'));
+  document.addEventListener('visibilitychange',function(){hidden=document.hidden});
+  setInterval(function(){if(terms.some(function(t){return t.key==='age'})&&onScreen&&!hidden)render()},1000);
+  new MutationObserver(updateCount).observe(html,{attributes:true,attributeFilter:['data-lang']});
+  if(reduce){paused=true;press('b-pause',true)}
+  render();stick();loop();
 
   /* ссылки на скачивание из последнего релиза */
   fetch('https://api.github.com/repos/alx-in-dev/LogCat-by-cactus/releases/latest',{headers:{Accept:'application/vnd.github+json'}})
