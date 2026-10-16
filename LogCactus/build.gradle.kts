@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.cactus"
-version = "1.3.11"
+version = "1.3.12"
 
 repositories {
     google()
@@ -79,7 +79,7 @@ compose.desktop {
             modules("jdk.jfr", "jdk.httpserver")
             // group/version в начале файла — "1.3.7", а jpackage под macOS
             // требует строгий major.minor.patch — задаём отдельно только для дистрибутива.
-            packageVersion = "1.3.11"
+            packageVersion = "1.3.12"
             macOS {
                 iconFile.set(project.file("icons/AppIcon.icns"))
                 bundleID = "com.cactus.logcactus"
