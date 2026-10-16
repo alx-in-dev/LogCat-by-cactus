@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.cactus"
-version = "1.3.12"
+version = "1.3.13"
 
 repositories {
     google()
@@ -79,10 +79,12 @@ compose.desktop {
             modules("jdk.jfr", "jdk.httpserver")
             // group/version в начале файла — "1.3.7", а jpackage под macOS
             // требует строгий major.minor.patch — задаём отдельно только для дистрибутива.
-            packageVersion = "1.3.12"
+            packageVersion = "1.3.13"
             macOS {
                 iconFile.set(project.file("icons/AppIcon.icns"))
                 bundleID = "com.cactus.logcactus"
+                // Категория в Info.plist (LSApplicationCategoryType); по умолчанию Unknown.
+                appCategory = "public.app-category.developer-tools"
                 // Подпись Developer ID включается, только если задано имя сертификата (часть строки
                 // "Developer ID Application: <Имя> (<TEAM>)", jpackage сам добавляет префикс):
                 //   ./gradlew packageReleaseDmg -PmacSignIdentity="<Имя>"   (или в ~/.gradle/gradle.properties)
