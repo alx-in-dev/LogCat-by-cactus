@@ -173,7 +173,7 @@ class LogcatSession(
   private fun drain() {
     val added = ArrayList<LogEntry>()
     if (!paused) while (true) added.add(pending.poll() ?: break)
-    val criteria = LogcatFilterCriteria(level, query, true, false, minePackage)
+    val criteria = LogcatFilterCriteria(level, query, false, false, minePackage)
     val newVisible: List<LogEntry>
     synchronized(this.lock) {
       if (added.isEmpty() && !refilter) return

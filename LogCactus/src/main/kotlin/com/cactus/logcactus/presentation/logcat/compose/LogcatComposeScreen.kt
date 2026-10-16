@@ -1090,16 +1090,6 @@ fun LogcatComposeScreen(ui: ComposeUiBridge) {
           }
         }
       }
-      Tip("Treat filter text as a regular expression") {
-        Row(
-          modifier = Modifier.clickable { ui.changeRegex(!ui.regex) }.padding(horizontal = 4.dp, vertical = 4.dp),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-          PanelCheckbox(ui.regex)
-          Text("Regex", color = TextMuted, fontSize = ButtonTextSize)
-        }
-      }
       Tip("Match case") {
         Row(
           modifier = Modifier.clickable { ui.changeCaseSensitive(!ui.caseSensitive) }.padding(horizontal = 4.dp, vertical = 4.dp),
@@ -2304,7 +2294,6 @@ private fun LogcatScreenPreview() {
       )
       selectedProcess = processOptions[1]
       query = "package:com.example.app level:info"
-      regex = false
       caseSensitive = false
       showTime = true
       showTag = true

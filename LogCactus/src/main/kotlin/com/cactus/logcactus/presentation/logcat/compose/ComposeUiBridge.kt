@@ -108,7 +108,9 @@ class ComposeUiBridge(
   var logFontSize by mutableStateOf(13)
   var level by mutableStateOf("VERBOSE")
   var query by mutableStateOf("")
-  var regex by mutableStateOf(true)
+  // Как в Logcat Android Studio: текст ищется как подстрока, регулярное выражение включается ключом `key~:` (tag~:Net.*, -message~:foo|bar).
+  // Общего переключателя Regex больше нет.
+  val regex: Boolean = false
   var caseSensitive by mutableStateOf(false)
   var allProcesses by mutableStateOf(true)
   var showTime by mutableStateOf(true)
@@ -357,12 +359,6 @@ class ComposeUiBridge(
 
   fun changeShowAppName(value: Boolean) {
     showAppName = value
-    invalidateRenderedCache()
-    applyLocalFilter()
-  }
-
-  fun changeRegex(value: Boolean) {
-    regex = value
     invalidateRenderedCache()
     applyLocalFilter()
   }
@@ -936,7 +932,6 @@ class ComposeUiBridge(
       if (!initialized) {
         level = state.minLevel
         query = state.query
-        regex = state.isRegex
         caseSensitive = state.isCaseSensitive
         bufferBytes = state.maxBytes
         initialized = true
