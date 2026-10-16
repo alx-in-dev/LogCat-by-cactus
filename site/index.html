@@ -100,6 +100,8 @@ h1 em{font-style:normal;color:var(--accent)}
 .scopechip{font-size:11px;background:#3a3f48;color:#aab3c2;padding:3px 7px;border-radius:5px;white-space:nowrap;max-width:112px;overflow:hidden;text-overflow:ellipsis}
 .mini{display:grid;place-items:center;width:24px;height:24px;border:0;border-radius:5px;background:transparent;color:#7f8b91;cursor:pointer;padding:0;flex:none}
 .mini:hover{background:#3a3f48;color:var(--ink)}
+.mini.cc{width:auto;padding:0 6px;font:600 11px/1 system-ui,sans-serif}
+.mini.cc[aria-pressed="true"]{background:#4a78b9;color:#fff}
 .mini.inert{cursor:default}.mini.inert:hover{background:transparent;color:#7f8b91}
 .main{display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px;padding:0 8px 8px}
 .tools{display:flex;flex-direction:column;gap:4px;padding:4px;background:var(--col);border-radius:8px;align-self:stretch}
@@ -236,8 +238,9 @@ footer a{color:var(--text)}
               <div class="ftext"><div class="mirror" id="mirror" aria-hidden="true"></div><input id="q" type="text" value="package:mine level:warn" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Filter"></div>
               <span class="scopechip" id="scope" hidden></span>
               <button class="mini" id="qclear" type="button" aria-label="Clear filter"><svg class="ic"><use href="#i-close"/></svg></button>
-              <a class="mini" href="#filter" aria-label="Filter help"><svg class="ic"><use href="#i-help"/></svg></a>
+              <button class="mini cc" id="qcc" type="button" aria-pressed="false" aria-label="Match case" title="Match case">Cc</button>
             </div>
+            <a class="mini" href="#filter" aria-label="Filter help"><svg class="ic"><use href="#i-help"/></svg></a>
           </div>
           <div class="main">
             <div class="tools" role="toolbar" aria-label="Logcat tools">
@@ -445,7 +448,7 @@ footer a{color:var(--text)}
     if(m[0]==='')TERM.lastIndex++}
     return out}
   var $=function(id){return document.getElementById(id)};
-  var q=$('q'),log=$('log'),count=$('count'),fbox=$('fbox'),scope=$('scope'),chipsEl=$('chips'),mirror=$('mirror'),rx={checked:true},cc={checked:false};
+  var q=$('q'),log=$('log'),count=$('count'),fbox=$('fbox'),scope=$('scope'),chipsEl=$('chips'),mirror=$('mirror'),rx={checked:false},cc={checked:false};
   var terms=[],bad=false;
   function textMatch(hay,t,regexDefault){
     var v=t.val,ci=!cc.checked;
@@ -510,6 +513,7 @@ footer a{color:var(--text)}
     b.addEventListener('click',function(){q.value=p;render()});chipsEl.appendChild(b)});
   q.addEventListener('input',render);q.addEventListener('scroll',function(){mirror.scrollLeft=q.scrollLeft});
   $('qclear').addEventListener('click',function(){q.value='';render();q.focus()});
+  $('qcc').addEventListener('click',function(){cc.checked=!cc.checked;this.setAttribute('aria-pressed',cc.checked?'true':'false');render()});
 
   /* панель инструментов */
   function press(id,on){$(id).setAttribute('aria-pressed',on?'true':'false')}
