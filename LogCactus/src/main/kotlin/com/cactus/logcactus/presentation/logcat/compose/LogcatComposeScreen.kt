@@ -951,12 +951,6 @@ fun LogcatComposeScreen(ui: ComposeUiBridge) {
           tooltip = "Add / remove this filter from favorites",
           tint = Color.Unspecified
         )
-        SmallButton(
-          icon = painterResource("logcactus/icons/toolbar/help.svg"),
-          tooltip = "Help: shortcuts, filter syntax, features",
-          onClick = { helpExpanded = true }
-        )
-        if (helpExpanded) HelpDialog(onClose = { helpExpanded = false })
       }
       DropdownMenu(
         expanded = showSuggestions,
@@ -1039,8 +1033,7 @@ fun LogcatComposeScreen(ui: ComposeUiBridge) {
           }
         }
       }
-      }
-      Box {
+        // История открывается под полем, у левого края (под funnel-иконкой), как в Logcat Android Studio.
         // Отдельной кнопки-часов больше нет — funnel-иконка в поле фильтра уже
         // открывает эту же историю (см. leadingIcon поля выше), дублирующая
         // кнопка была лишней.
@@ -1095,6 +1088,13 @@ fun LogcatComposeScreen(ui: ComposeUiBridge) {
           }
         }
       }
+      // «?» вынесена за рамку поля, как в Logcat Android Studio.
+      SmallButton(
+        icon = painterResource("logcactus/icons/toolbar/help.svg"),
+        tooltip = "Help: shortcuts, filter syntax, features",
+        onClick = { helpExpanded = true }
+      )
+      if (helpExpanded) HelpDialog(onClose = { helpExpanded = false })
     }
 
     Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
