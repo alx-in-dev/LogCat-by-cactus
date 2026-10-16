@@ -2,9 +2,12 @@ package com.cactus.logcactus.presentation.logcat.compose
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.sp
 
 /** Цвета раскладки JSON в логе: те же, что у редактора IDE (Darcula / Light). */
 class JsonColors(val key: Color, val string: Color, val number: Color, val keyword: Color) {
@@ -17,11 +20,17 @@ class JsonColors(val key: Color, val string: Color, val number: Color, val keywo
 /**
  * Подсветка одной строки уже отформатированного JSON (RowDetails.prettyJson кладёт по токену на строку):
  * ключи, строки, числа и true/false/null; скобки и запятые остаются цветом сообщения. [prefix] — отступ под колонки.
+ * [charSp] > 0 — включён перенос строк: продолжение длинной строки сдвигается под её значение (висячий отступ),
+ * а не прижимается к левому краю окна.
  */
 object JsonHighlight {
   private val NUMBER = Regex("""-?\d+(\.\d+)?([eE][+-]?\d+)?""")
 
-  fun line(prefix: String, line: String, colors: JsonColors): AnnotatedString = buildAnnotatedString {
+  fun line(prefix: String, line: String, colors: JsonColors, charSp: Float = 0f): AnnotatedString = buildAnnotatedString {
+    if (charSp > 0f) {
+      val hang = (prefix.length + line.takeWhile { it == ' ' }.length + 2) * charSp
+      pushStyle(ParagraphStyle(textIndent = TextIndent(firstLine = 0.sp, restLine = hang.sp)))
+    }
     append(prefix)
     var i = 0
     while (i < line.length) {

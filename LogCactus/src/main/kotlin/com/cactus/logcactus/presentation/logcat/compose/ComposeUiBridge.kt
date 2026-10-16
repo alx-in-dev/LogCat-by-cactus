@@ -1101,6 +1101,9 @@ class ComposeUiBridge(
   // previousTag — тег предыдущей строки списка: для hideDuplicateTags повторяющийся тег гасится пробелами.
   fun formatForCanvas(entry: LogEntry, previousTag: String? = null): AnnotatedString = formatLine(entry, previousTag)
 
+  // Ширина одного знака моноширинного шрифта списка в sp: Canvas выставляет её при измерении, нужна для висячего отступа JSON.
+  @Volatile var canvasCharSp: Float = 0f
+
   // Сколько раз строили видимый текст строки (счётчик для тестов: далёкие от экрана строки не должны форматироваться).
   @Volatile var canvasTextBuilds: Long = 0
 
@@ -1124,7 +1127,7 @@ class ComposeUiBridge(
         if (base.text.endsWith(entry.message) && cut in 0..base.length) base.subSequence(0, cut) else base
       }
       CanvasItem.Kind.DETAIL ->
-        if (item.json) JsonHighlight.line(" ".repeat(canvasPrefixLength(entry)), item.line, jsonColors())
+        if (item.json) JsonHighlight.line(" ".repeat(canvasPrefixLength(entry)), item.line, jsonColors(), if (wrapLines) canvasCharSp else 0f)
         else AnnotatedString(" ".repeat(canvasPrefixLength(entry)) + item.line)
     }
   }

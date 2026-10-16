@@ -120,12 +120,15 @@ internal fun LogCanvasList(
   val gutterPx = with(density) { 27.dp.toPx() } // полоска закладки 3dp + бейдж 18dp + зазор 6dp
   val sample = remember(style) { measurer.measure("W", style) }
   val charW = sample.size.width.toFloat().coerceAtLeast(1f)
+  // Дробная ширина знака (по 40 знакам): целочисленная charW накопила бы ошибку на длинном отступе JSON.
+  val exactCharW = remember(style) { measurer.measure("W".repeat(40), style).size.width / 40f }
   // Высота строки для оценок — РЕАЛЬНАЯ измеренная (целые пиксели), а не 1.35*fontSize: иначе на сотнях строк
   // оценка расходится с фактическими высотами и переходы (F2, к крашу) промахиваются на десяток строк.
   val estLineH = sample.size.height.toFloat().coerceAtLeast(1f)
   // Параметры оценок и жестов живут в состоянии и обновляются на каждой композиции: обработчики указателя и адаптер
   // скроллбара создаются один раз и иначе держали бы значения первой композиции (после смены шрифта — устаревшие).
   state.charW = charW
+  ui.canvasCharSp = with(density) { exactCharW.toSp().value }
   state.estLineH = estLineH
   state.gutter = gutterPx
 
@@ -283,6 +286,8 @@ internal fun LogCanvasList(
     state.syncRows(rows)
 
     val constraints = if (wrap) Constraints(maxWidth = textWidth.toInt().coerceAtLeast(1)) else Constraints()
+    // Карточка JSON не доходит до края окна (скроллбар), поэтому перенос строк внутри неё — раньше.
+    val jsonConstraints = if (wrap) Constraints(maxWidth = (textWidth - JSON_CARD_RIGHT_MARGIN.dp.toPx()).toInt().coerceAtLeast(1)) else constraints
     state.rects.clear()
     val highlight = ui.canvasSearchHighlight
     var topIndex = -1
@@ -308,7 +313,7 @@ internal fun LogCanvasList(
             overflow = TextOverflow.Clip,
             softWrap = wrap,
             maxLines = if (wrap) Int.MAX_VALUE else 1,
-            constraints = constraints
+            constraints = if (item.json) jsonConstraints else constraints
           )
           h = layout.size.height.toFloat()
           state.heights[item] = h
@@ -320,7 +325,8 @@ internal fun LogCanvasList(
             // верхняя ПОЛНОСТЬЮ видимая строка — индекс для F2/навигации и якорь вида; если целой нет — самая верхняя частичная
             if (top >= -1f || topIndex < 0) { topIndex = i; anchorItem = item; anchorTopY = top }
             val sel = selection?.rangeFor(i, layout.layoutInput.text.length)
-            drawRow(item, layout, top, h, ui, measurer, badgeStyle, badgeW, badgeH, barW, gutterPx, lineHeightPx, shift, sel, bookmarkedItem(item, ui), highlight?.byRow?.get(i), highlight?.current)
+            drawRow(item, layout, top, h, ui, measurer, badgeStyle, badgeW, badgeH, barW, gutterPx, lineHeightPx, shift, sel, bookmarkedItem(item, ui), highlight?.byRow?.get(i), highlight?.current,
+              jsonRight = if (wrap) 0f else gutterPx - shift + maxWidth)
           }
         }
         y -= h
@@ -407,7 +413,8 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawRow(
   selection: IntRange? = null,
   bookmarked: Boolean = false,
   matches: List<SearchMatch>? = null,
-  currentMatch: SearchMatch? = null
+  currentMatch: SearchMatch? = null,
+  jsonRight: Float = 0f
 ) {
   val entry = item.entry
   val colors = ui.levelColors(entry.level)
@@ -424,7 +431,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawRow(
     drawText(letter, colors.badgeFg, Offset(barW + (badgeW - letter.size.width) / 2f, by + (badgeH - letter.size.height) / 2f))
   }
   clipRect(left = gutterPx) {
-    if (item.kind == CanvasItem.Kind.DETAIL && item.json) drawJsonCard(item, layout, top, height, colors.message, ui.isDarkTheme(), gutterPx - hShift)
+    if (item.kind == CanvasItem.Kind.DETAIL && item.json) drawJsonCard(item, layout, top, height, colors.message, ui.isDarkTheme(), gutterPx - hShift, jsonRight)
     if (matches != null) {
       // подсветка найденного (Cmd+F): текущее совпадение другим цветом
       val len = layout.layoutInput.text.length
@@ -454,13 +461,15 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawJsonCard(
   height: Float,
   levelColor: Color,
   dark: Boolean,
-  textX: Float
+  textX: Float,
+  contentRight: Float
 ) {
   val pad = 10.dp.toPx()
   val r = 5.dp.toPx()
   val prefix = (layout.layoutInput.text.length - item.line.length).coerceAtLeast(0)
   val left = textX + layout.getHorizontalPosition(prefix, true) - pad
-  val right = size.width - 18.dp.toPx() // не заходим под вертикальный скроллбар
+  // не заходим под вертикальный скроллбар; без переноса строк карточка тянется до конца самой длинной строки списка
+  val right = maxOf(size.width - JSON_CARD_RIGHT_MARGIN.dp.toPx(), contentRight + pad)
   if (right <= left) return
   // Скругление рисуем «за краем» строки и обрезаем по её границам: соседние строки карточки стыкуются без швов.
   val y0 = if (item.first) top else top - r
@@ -485,6 +494,7 @@ private fun letterOf(level: String): String = when (level) {
   else -> "V"
 }
 
+private const val JSON_CARD_RIGHT_MARGIN = 18
 private const val MAX_CACHE = 1200
 private const val BELOW_SCREEN_LINES = 60
 private const val MAX_INDENT = 160
