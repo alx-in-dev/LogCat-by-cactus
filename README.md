@@ -53,6 +53,8 @@ macOS-сборка подписана Developer ID и нотаризована A
 
 Секретов в репозитории нет. Подпись macOS-сборки включается свойством `-PmacSignIdentity`, подпись и публикация плагина — переменными окружения `CERTIFICATE_CHAIN`, `PRIVATE_KEY`, `PRIVATE_KEY_PASSWORD`, `PUBLISH_TOKEN`.
 
+Порядок выпуска, включая обязательный `scripts/make-dmg.sh` для macOS-образа, — в [docs/release-macos.md](docs/release-macos.md).
+
 ## Лицензия
 
 [Apache License 2.0](LICENSE). Сторонние компоненты — в [`NOTICE`](NOTICE).
