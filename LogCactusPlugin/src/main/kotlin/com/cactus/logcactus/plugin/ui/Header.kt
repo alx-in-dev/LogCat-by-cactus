@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -36,6 +37,7 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.PopupMenu
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.separator
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
@@ -120,6 +122,16 @@ fun Header(session: LogcatSession) {
           Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
             if (filter.text.isNotEmpty()) {
               Icon(AllIconsKeys.General.Close, contentDescription = "Clear filter", modifier = Modifier.clickable { filter.setTextAndPlaceCursorAtEnd("") })
+            }
+            // «Cc» (Match case) — внутри поля, между очисткой и звездой, как в Logcat Android Studio.
+            val matchCase = session.matchCase
+            Tooltip(tooltip = { Text("Match case") }) {
+              Box(
+                Modifier.clip(RoundedCornerShape(3.dp))
+                  .background(if (matchCase) JewelTheme.globalColors.outlines.focused.copy(alpha = 0.35f) else Color.Transparent)
+                  .clickable { session.toggleMatchCase() }
+                  .padding(horizontal = 4.dp, vertical = 1.dp)
+              ) { Text("Cc") }
             }
             val fav = session.query.trim() in session.favorites
             Icon(

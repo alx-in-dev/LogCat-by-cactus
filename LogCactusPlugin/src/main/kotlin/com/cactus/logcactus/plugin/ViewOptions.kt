@@ -17,6 +17,7 @@ class ViewOptions(project: Project) {
 
   // Вид (Configure formatting): состояние для Compose, запись в настройки — при каждом изменении.
   var softWrap by mutableStateOf(settings.softWrap); private set
+  var matchCase by mutableStateOf(settings.matchCase); private set
   var foldStacks by mutableStateOf(settings.foldStacks); private set
   var autoExpandJson by mutableStateOf(settings.autoExpandJson); private set
   var autoExpandUrls by mutableStateOf(settings.autoExpandUrls); private set
@@ -35,6 +36,7 @@ class ViewOptions(project: Project) {
 
 
   fun applySoftWrap(v: Boolean) { softWrap = v; settings.softWrap = v }
+  fun applyMatchCase(v: Boolean) { matchCase = v; settings.matchCase = v }
   fun applyFoldStacks(v: Boolean) { foldStacks = v; settings.foldStacks = v }
   fun applyAutoExpandJson(v: Boolean) { autoExpandJson = v; settings.autoExpandJson = v }
   fun applyAutoExpandUrls(v: Boolean) { autoExpandUrls = v; settings.autoExpandUrls = v }
@@ -59,6 +61,7 @@ class ViewOptions(project: Project) {
   /** Подхватывает значения, изменённые на странице Settings (там пишут прямо в [LogcatSettings]). */
   fun syncFromSettings() {
     softWrap = settings.softWrap
+    matchCase = settings.matchCase
     foldStacks = settings.foldStacks
     autoExpandJson = settings.autoExpandJson
     autoExpandUrls = settings.autoExpandUrls

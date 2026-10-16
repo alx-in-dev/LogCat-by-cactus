@@ -31,6 +31,8 @@ class LogcatSettings : SimplePersistentStateComponent<LogcatSettings.SettingsSta
     var query by string("")
     var level by string("VERBOSE")
     var softWrap by property(true)
+    /** Match case («Cc» в поле фильтра), общий для вкладок. */
+    var matchCase by property(false)
     var foldStacks by property(true)
     var autoExpandJson by property(true)
     var autoExpandUrls by property(true)

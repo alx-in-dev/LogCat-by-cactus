@@ -95,6 +95,7 @@ class LogcatSession(
   private var streamJob: Job? = null
   private var started = false
   @Volatile private var refilter = true
+  @Volatile private var appliedMatchCase = options.matchCase
 
   /** Запускает опрос устройств и конвейер обновления (один раз; повторные вызовы безвредны). */
   fun start() {
@@ -163,6 +164,8 @@ class LogcatSession(
   private suspend fun pump() {
     while (true) {
       delay(TICK_MS)
+      // Match case переключили в другой вкладке — этот фильтр тоже надо пересчитать.
+      if (options.matchCase != appliedMatchCase) { appliedMatchCase = options.matchCase; refilter = true }
       // На паузе поток не теряем, но и не даём очереди расти без предела.
       while (pending.size > MAX_ENTRIES) pending.poll()
       if (paused && !refilter) continue
@@ -173,7 +176,7 @@ class LogcatSession(
   private fun drain() {
     val added = ArrayList<LogEntry>()
     if (!paused) while (true) added.add(pending.poll() ?: break)
-    val criteria = LogcatFilterCriteria(level, query, false, false, minePackage)
+    val criteria = LogcatFilterCriteria(level, query, false, options.matchCase, minePackage)
     val newVisible: List<LogEntry>
     synchronized(this.lock) {
       if (added.isEmpty() && !refilter) return
@@ -236,6 +239,11 @@ class LogcatSession(
     clearBuffer()
     if (serial != null) scope.launch { adb.clear(serial) }
   }
+
+  val matchCase get() = options.matchCase
+
+  /** «Cc» в поле фильтра: общая для вкладок настройка; остальные вкладки перефильтруются сами (см. цикл потока). */
+  fun toggleMatchCase() { options.applyMatchCase(!options.matchCase); refilter = true }
 
   fun updateQuery(value: String) { if (value != query) { query = value; refilter = true; onChangedHook() } }
 
