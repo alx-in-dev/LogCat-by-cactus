@@ -936,6 +936,11 @@ fun LogcatComposeScreen(ui: ComposeUiBridge) {
             onClick = { queryField = TextFieldValue(""); ui.query = ""; ui.applyFilters(addToHistory = false) }
           )
         }
+        // «Cc» (Match case) — внутри поля, между очисткой и звездой, как в Logcat Android Studio.
+        Tip("Match case") { SearchToggleButton("Cc", ui.caseSensitive) { ui.changeCaseSensitive(!ui.caseSensitive) } }
+        Spacer(modifier = Modifier.width(2.dp))
+        Box(modifier = Modifier.width(1.dp).height(16.dp).background(FieldStroke))
+        Spacer(modifier = Modifier.width(2.dp))
         // Звезда переключает "избранное" текущего запроса в истории — это НЕ
         // применяет фильтр (FavoriteButton.mouseClicked() в FilterTextField.kt,
         // фильтрация уже идёт живьём по мере ввода).
@@ -1088,16 +1093,6 @@ fun LogcatComposeScreen(ui: ComposeUiBridge) {
               Text("Clear history", color = TextMuted)
             }
           }
-        }
-      }
-      Tip("Match case") {
-        Row(
-          modifier = Modifier.clickable { ui.changeCaseSensitive(!ui.caseSensitive) }.padding(horizontal = 4.dp, vertical = 4.dp),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-          PanelCheckbox(ui.caseSensitive)
-          Text("Cc", color = TextMuted, fontSize = ButtonTextSize)
         }
       }
     }
