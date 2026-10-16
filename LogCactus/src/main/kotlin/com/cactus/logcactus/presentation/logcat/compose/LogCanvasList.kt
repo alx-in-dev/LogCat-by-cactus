@@ -128,6 +128,7 @@ internal fun LogCanvasList(
   // Параметры оценок и жестов живут в состоянии и обновляются на каждой композиции: обработчики указателя и адаптер
   // скроллбара создаются один раз и иначе держали бы значения первой композиции (после смены шрифта — устаревшие).
   state.charW = charW
+  state.dp = density.density
   ui.canvasCharSp = with(density) { exactCharW.toSp().value }
   state.estLineH = estLineH
   state.gutter = gutterPx
@@ -211,6 +212,9 @@ internal fun LogCanvasList(
               }
               val clicks = (event.nativeEvent as? java.awt.event.MouseEvent)?.clickCount ?: 1
               val shift = if (wrapNow(ui)) 0f else hOffset().toFloat()
+              // кнопка «−/+» в карточке JSON: свернуть/развернуть объект, выделение не начинаем
+              val foldItem = state.foldBoxAt(down.position.x, down.position.y, state.gutter, shift)
+              if (foldItem != null) { ui.toggleJsonFold(foldItem); tick++; continue }
               state.pointerX = down.position.x
               state.pointerY = down.position.y
               state.press(down.position.x, down.position.y, clicks, state.gutter, shift, ui)
@@ -464,7 +468,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawJsonCard(
   textX: Float,
   contentRight: Float
 ) {
-  val pad = 10.dp.toPx()
+  val pad = JSON_CARD_PAD.dp.toPx()
   val r = 5.dp.toPx()
   val prefix = (layout.layoutInput.text.length - item.line.length).coerceAtLeast(0)
   val left = textX + layout.getHorizontalPosition(prefix, true) - pad
@@ -483,6 +487,18 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawJsonCard(
       drawRect(levelColor.copy(alpha = 0.85f), Offset(left, y0), Size(3.dp.toPx(), y1 - y0))
     }
   }
+  // Кнопка сворачивания «−/+» в квадратике: у строк-открывалок скобок, по центру первой строки.
+  if (item.closeIndex > item.lineIndex && item.lineIndex >= 0) {
+    val box = 9.dp.toPx()
+    val bx = left + 6.dp.toPx()
+    val by = top + (layout.getLineTop(0) + layout.getLineBottom(0)) / 2f - box / 2f
+    val stroke = 1.dp.toPx()
+    val c = Color(if (dark) 0xFF8B94A3 else 0xFF6C7280)
+    drawRect(c, Offset(bx, by), Size(box, box), style = androidx.compose.ui.graphics.drawscope.Stroke(stroke))
+    val m = 2.5.dp.toPx()
+    drawLine(c, Offset(bx + m, by + box / 2f), Offset(bx + box - m, by + box / 2f), stroke)
+    if (item.collapsed) drawLine(c, Offset(bx + box / 2f, by + m), Offset(bx + box / 2f, by + box - m), stroke)
+  }
 }
 
 private fun letterOf(level: String): String = when (level) {
@@ -495,6 +511,7 @@ private fun letterOf(level: String): String = when (level) {
 }
 
 private const val JSON_CARD_RIGHT_MARGIN = 18
+private const val JSON_CARD_PAD = 18
 private const val MAX_CACHE = 1200
 private const val BELOW_SCREEN_LINES = 60
 private const val MAX_INDENT = 160
@@ -518,6 +535,7 @@ private class CanvasViewState {
   var anchorTop = 0f
   // Параметры оценок высот/жестов (обновляются на каждой композиции).
   var charW = 8f
+  var dp = 1f // пикселей в dp: кнопке сворачивания JSON нужна ширина области слева от текста
   var estLineH = 18f
   var gutter = 0f
   val formatted = IdentityHashMap<CanvasItem, AnnotatedString>()
@@ -625,6 +643,17 @@ private class CanvasViewState {
     }
     offset = rect.layout.getOffsetForPosition(Offset(x - (gutterPx - hShift), y - rect.top))
     return rect to offset
+  }
+
+  /** Строка-открывалка JSON, на чью кнопку «−/+» пришёлся клик (x, y), или null. */
+  fun foldBoxAt(x: Float, y: Float, gutterPx: Float, hShift: Float): CanvasItem? {
+    val rect = rowAt(y) ?: return null
+    val item = rect.item
+    if (!item.json || item.lineIndex < 0 || item.closeIndex <= item.lineIndex) return null
+    val prefix = (rect.layout.layoutInput.text.length - item.line.length).coerceAtLeast(0)
+    val pad = JSON_CARD_PAD * dp
+    val left = gutterPx - hShift + rect.layout.getHorizontalPosition(prefix, true) - pad
+    return if (x >= left && x <= left + pad - 2f * dp && y - rect.top <= rect.layout.getLineBottom(0)) item else null
   }
 
   fun rowAt(y: Float): RowRect? = rects.firstOrNull { y >= it.top && y < it.top + it.height }

@@ -20,7 +20,11 @@ class CanvasItem(
   // Строка раскрытия JSON (не Intent/URL): рисуется карточкой; first/last — края карточки (для скруглений).
   val json: Boolean = false,
   val first: Boolean = false,
-  val last: Boolean = false
+  val last: Boolean = false,
+  // Сворачивание JSON: номер строки внутри раскрытия, строка закрывающей скобки (у открывающей; иначе -1) и признак «свёрнуто».
+  val lineIndex: Int = -1,
+  val closeIndex: Int = -1,
+  val collapsed: Boolean = false
 ) {
   enum class Kind { ENTRY, STACK, HEAD, DETAIL }
 
@@ -52,7 +56,8 @@ class CanvasFolder(private val minRun: Int = StackFolder.MIN_RUN) {
     isToggled: (LogEntry) -> Boolean,
     anyToggled: Boolean,
     autoDetails: Boolean,
-    autoUrls: Boolean = autoDetails
+    autoUrls: Boolean = autoDetails,
+    collapsed: (LogEntry) -> Set<Int>? = { null }
   ): List<CanvasItem> {
     val limit = rows.size + 2000
     if (entryItems.size > limit || stackItems.size > limit || expansions.size > limit) { entryItems.clear(); stackItems.clear(); expansions.clear(); urlExpansions.clear() }
@@ -77,13 +82,44 @@ class CanvasFolder(private val minRun: Int = StackFolder.MIN_RUN) {
         val exp = expansionOf(e)
         val auto = if (urlExpansions[e] == true) autoUrls else autoDetails
         if (exp != null && auto != isToggled(e)) {
-          out.addAll(exp)
+          out.addAll(applyCollapse(exp, collapsed(e)))
           i++
           continue
         }
       }
       out.add(entryItem(e))
       i++
+    }
+    return out
+  }
+
+  private val collapsedVariants = IdentityHashMap<CanvasItem, CanvasItem>()
+
+  /**
+   * Раскрытие с учётом свёрнутых объектов: у свёрнутой строки-открывалки остаётся одна строка `{ … },`, всё до закрывающей
+   * скобки скрыто. [items] — HEAD и затем строки JSON (индекс строки n лежит в items[n + 1]).
+   */
+  private fun applyCollapse(items: List<CanvasItem>, collapsed: Set<Int>?): List<CanvasItem> {
+    if (collapsed.isNullOrEmpty()) return items
+    val out = ArrayList<CanvasItem>(items.size)
+    var k = 0
+    while (k < items.size) {
+      val item = items[k]
+      if (item.kind == CanvasItem.Kind.DETAIL && item.json && item.closeIndex > item.lineIndex && item.lineIndex in collapsed) {
+        val close = items.getOrNull(item.closeIndex + 1)
+        if (close != null) {
+          out.add(collapsedVariants.getOrPut(item) {
+            CanvasItem(
+              item.entry, CanvasItem.Kind.DETAIL, expanded = true, line = item.line.trimEnd() + " … " + close.line.trim(), json = true,
+              first = item.first, last = close.last, lineIndex = item.lineIndex, closeIndex = item.closeIndex, collapsed = true
+            )
+          })
+          k = item.closeIndex + 2
+          continue
+        }
+      }
+      out.add(item)
+      k++
     }
     return out
   }
@@ -106,12 +142,35 @@ class CanvasFolder(private val minRun: Int = StackFolder.MIN_RUN) {
     val items = exp?.let {
       buildList {
         add(CanvasItem(e, CanvasItem.Kind.HEAD, expanded = true, payloadStart = it.start))
+        val closes = if (it.json) bracketPairs(it.lines) else emptyMap()
         it.lines.forEachIndexed { n, l ->
-          add(CanvasItem(e, CanvasItem.Kind.DETAIL, expanded = true, line = l, json = it.json, first = n == 0, last = n == it.lines.lastIndex))
+          add(
+            CanvasItem(
+              e, CanvasItem.Kind.DETAIL, expanded = true, line = l, json = it.json, first = n == 0, last = n == it.lines.lastIndex,
+              lineIndex = n, closeIndex = closes[n] ?: -1
+            )
+          )
         }
       }
     }
     expansions[e] = items
     return items
   }
+}
+
+/**
+ * Пары скобок в отформатированном JSON ([RowDetails.prettyJson] даёт по токену на строку): открывающая строка кончается
+ * на `{` или `[`, закрывающая начинается с `}` или `]`. Возвращает «строка открывалки → строка закрывалки»; обрыв без пары пропускается.
+ */
+internal fun bracketPairs(lines: List<String>): Map<Int, Int> {
+  val pairs = HashMap<Int, Int>()
+  val stack = ArrayList<Int>()
+  lines.forEachIndexed { i, raw ->
+    val t = raw.trim()
+    when {
+      t.startsWith("}") || t.startsWith("]") -> { val open = stack.removeLastOrNull(); if (open != null) pairs[open] = i }
+      t.endsWith("{") || t.endsWith("[") -> stack.add(i)
+    }
+  }
+  return pairs
 }

@@ -897,6 +897,7 @@ class ComposeUiBridge(
     crashGroups = emptyList()
     bookmarks = emptyList()
     expandedEntries.clear()
+    collapsedJson.clear()
     foldVersion++
   }
 
@@ -1069,7 +1070,8 @@ class ComposeUiBridge(
     val rows = canvasRows
     if (canvasFoldedFor === rows && canvasFoldedVersion == foldVersion) return
     canvasItems = canvasFolder.fold(
-      rows, foldStacks && !foldBypassForSearch, { expandedEntries.containsKey(it) }, expandedEntries.isNotEmpty(), autoExpandJson, autoExpandUrls
+      rows, foldStacks && !foldBypassForSearch, { expandedEntries.containsKey(it) }, expandedEntries.isNotEmpty(), autoExpandJson, autoExpandUrls,
+      { collapsedJson[it] }
     )
     canvasFoldedFor = rows
     canvasFoldedVersion = foldVersion
@@ -1077,6 +1079,19 @@ class ComposeUiBridge(
 
   private fun refoldAll() {
     if (canvasMode) refoldCanvas() else visibleRows = foldRows()
+  }
+
+  // Свёрнутые объекты/массивы раскрытого JSON: запись → номера строк-открывалок (кнопка «−/+» в карточке).
+  private val collapsedJson = java.util.IdentityHashMap<LogEntry, MutableSet<Int>>()
+
+  fun toggleJsonFold(item: CanvasItem) {
+    if (item.lineIndex < 0 || item.closeIndex < 0) return
+    if (collapsedJson.size >= MAX_EXPANDED) collapsedJson.clear()
+    val set = collapsedJson.getOrPut(item.entry) { HashSet() }
+    if (!set.remove(item.lineIndex)) set.add(item.lineIndex)
+    if (set.isEmpty()) collapsedJson.remove(item.entry)
+    foldVersion++
+    refoldCanvas()
   }
 
   // Раскрыть/свернуть заглушку стека или JSON/Intent в строке Canvas-списка.
@@ -1098,6 +1113,9 @@ class ComposeUiBridge(
 
   // Ширина одного знака моноширинного шрифта списка в sp: Canvas выставляет её при измерении, нужна для висячего отступа JSON.
   @Volatile var canvasCharSp: Float = 0f
+
+  // Минимальный отступ строк JSON под кнопку сворачивания, даже если колонки скрыты.
+  private val JSON_MIN_PREFIX = 3
 
   // Сколько раз строили видимый текст строки (счётчик для тестов: далёкие от экрана строки не должны форматироваться).
   @Volatile var canvasTextBuilds: Long = 0
@@ -1122,7 +1140,7 @@ class ComposeUiBridge(
         if (base.text.endsWith(entry.message) && cut in 0..base.length) base.subSequence(0, cut) else base
       }
       CanvasItem.Kind.DETAIL ->
-        if (item.json) JsonHighlight.line(" ".repeat(canvasPrefixLength(entry)), item.line, jsonColors(), if (wrapLines) canvasCharSp else 0f)
+        if (item.json) JsonHighlight.line(" ".repeat(maxOf(canvasPrefixLength(entry), JSON_MIN_PREFIX)), item.line, jsonColors(), if (wrapLines) canvasCharSp else 0f)
         else AnnotatedString(" ".repeat(canvasPrefixLength(entry)) + item.line)
     }
   }

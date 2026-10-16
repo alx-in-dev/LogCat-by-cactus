@@ -29,3 +29,44 @@ class CanvasJsonFlagsTest {
     assertFalse(details.any { it.json })
   }
 }
+
+class CanvasJsonFoldTest {
+  private fun entry(msg: String) = LogEntry(1L, "INFO", "T", 1, "p", "p", msg)
+
+  @Test
+  fun bracketPairsMatchNestedObjects() {
+    val lines = RowDetails.prettyJson("""{"a":{"b":1},"c":[1,{"d":2}],"e":{}}""")!!
+    val pairs = bracketPairs(lines)
+    // { (0) ... } (последняя)
+    assertEquals(lines.lastIndex, pairs[0])
+    val a = lines.indexOfFirst { it.trim() == "\"a\": {" }
+    assertEquals(lines.indexOfFirst { it.trim() == "}," }, pairs[a])
+    // пустой объект в одну строку скобкой-открывалкой не считается
+    assertFalse(pairs.containsKey(lines.indexOfFirst { it.contains("\"e\": {}") }))
+  }
+
+  @Test
+  fun collapsedObjectHidesBodyAndKeepsTail() {
+    val e = entry("""<-- 200 {"a":{"b":1,"c":2},"d":3}""")
+    val folder = CanvasFolder()
+    val all = folder.fold(listOf(e), false, { false }, false, true)
+    val open = all.first { it.kind == CanvasItem.Kind.DETAIL && it.line.trim() == "\"a\": {" }
+    val folded = folder.fold(listOf(e), false, { false }, false, true, collapsed = { setOf(open.lineIndex) })
+    val shown = folded.filter { it.kind == CanvasItem.Kind.DETAIL }.map { it.line.trim() }
+    assertEquals(listOf("{", "\"a\": { … },", "\"d\": 3", "}"), shown)
+    assertTrue(folded.first { it.collapsed }.json)
+    // повторная свёртка отдаёт тот же объект (кэш высот и раскладки живёт по идентичности)
+    val again = folder.fold(listOf(e), false, { false }, false, true, collapsed = { setOf(open.lineIndex) })
+    assertTrue(folded.first { it.collapsed } === again.first { it.collapsed })
+  }
+
+  @Test
+  fun collapsingRootKeepsOneLineWithBothEdges() {
+    val e = entry("""<-- 200 {"a":1,"b":2}""")
+    val folded = CanvasFolder().fold(listOf(e), false, { false }, false, true, collapsed = { setOf(0) })
+    val d = folded.filter { it.kind == CanvasItem.Kind.DETAIL }
+    assertEquals(1, d.size)
+    assertEquals("{ … }", d.single().line.trim())
+    assertTrue(d.single().first && d.single().last)
+  }
+}
